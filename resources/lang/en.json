@@ -1,0 +1,16 @@
+{
+    "messages": {
+        "refund": {
+            "missing_tid": "Payment transaction ID (TID) is missing.",
+            "default_reason": "Admin refund"
+        },
+        "payment": {
+            "auth_failed": "Payment authentication failed.",
+            "mid_mismatch": "Merchant ID does not match.",
+            "signature_mismatch": "Payment signature verification failed.",
+            "order_not_found": "Order not found.",
+            "amount_mismatch": "Payment amount does not match.",
+            "authorize_failed": "Payment authorization failed."
+        }
+    }
+}
