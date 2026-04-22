@@ -5,8 +5,8 @@
     },
     "defaults": {
         "is_test_mode": true,
-        "test_mid": "",
-        "test_merchant_key": "",
+        "test_mid": "nicepay00m",
+        "test_merchant_key": "EYzu8jGGMfqaDEp76gSckuvnaHHu+bC4opsSN6lHv3b2lurNYkVXrZ7Z1AoqQnXI3eLuaUFyoRNC6FkrzVjceg==",
         "live_mid": "",
         "live_merchant_key": "",
         "redirect_success_url": "/shop/orders/{orderId}/complete",

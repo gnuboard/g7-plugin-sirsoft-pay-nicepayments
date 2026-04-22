@@ -36,21 +36,21 @@ class Plugin extends AbstractPlugin
             ],
             'test_mid' => [
                 'type' => 'string',
-                'default' => '',
+                'default' => 'nicepay00m',
                 'label' => ['ko' => '테스트 가맹점 ID (MID)', 'en' => 'Test Merchant ID (MID)'],
                 'hint' => [
-                    'ko' => '나이스페이먼츠에서 발급받은 테스트 MID',
-                    'en' => 'Test MID issued by NicePayments',
+                    'ko' => '나이스페이먼츠 공용 테스트 MID입니다. 테스트 전용이며 변경하지 않아도 됩니다.',
+                    'en' => 'NicePayments shared test MID. No change needed for testing.',
                 ],
             ],
             'test_merchant_key' => [
                 'type' => 'string',
-                'default' => '',
+                'default' => 'EYzu8jGGMfqaDEp76gSckuvnaHHu+bC4opsSN6lHv3b2lurNYkVXrZ7Z1AoqQnXI3eLuaUFyoRNC6FkrzVjceg==',
                 'sensitive' => true,
                 'label' => ['ko' => '테스트 가맹점 키', 'en' => 'Test Merchant Key'],
                 'hint' => [
-                    'ko' => '외부에 노출되지 않도록 주의하세요.',
-                    'en' => 'Keep this key secret.',
+                    'ko' => '나이스페이먼츠 공용 테스트 키입니다. 테스트 전용이며 변경하지 않아도 됩니다.',
+                    'en' => 'NicePayments shared test key. No change needed for testing.',
                 ],
             ],
             'live_mid' => [
@@ -93,8 +93,8 @@ class Plugin extends AbstractPlugin
     {
         return [
             'is_test_mode' => true,
-            'test_mid' => '',
-            'test_merchant_key' => '',
+            'test_mid' => 'nicepay00m',
+            'test_merchant_key' => 'EYzu8jGGMfqaDEp76gSckuvnaHHu+bC4opsSN6lHv3b2lurNYkVXrZ7Z1AoqQnXI3eLuaUFyoRNC6FkrzVjceg==',
             'live_mid' => '',
             'live_merchant_key' => '',
             'redirect_success_url' => '/shop/orders/{orderId}/complete',

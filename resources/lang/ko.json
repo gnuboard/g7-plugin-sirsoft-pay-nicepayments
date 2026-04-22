@@ -1,4 +1,24 @@
 {
+    "settings": {
+        "title": "나이스페이먼츠 설정",
+        "description": "나이스페이먼츠 PG 연동 설정",
+        "test_mode": "테스트 모드",
+        "test_mode_hint": "테스트 모드에서는 실제 결제가 발생하지 않습니다.",
+        "section_test_keys": "테스트 키 설정",
+        "test_mid": "테스트 가맹점 ID (MID)",
+        "test_mid_hint": "나이스페이먼츠 공용 테스트 MID입니다. 테스트 전용이며 변경하지 않아도 됩니다.",
+        "test_merchant_key": "테스트 가맹점 키",
+        "test_merchant_key_hint": "나이스페이먼츠 공용 테스트 키입니다. 테스트 전용이며 변경하지 않아도 됩니다.",
+        "section_live_keys": "라이브 키 설정",
+        "live_mid": "라이브 가맹점 ID (MID)",
+        "live_merchant_key": "라이브 가맹점 키",
+        "live_merchant_key_hint": "외부에 노출되지 않도록 주의하세요.",
+        "section_redirect": "리다이렉트 URL",
+        "redirect_success_url": "결제 성공 리다이렉트 URL",
+        "redirect_success_url_hint": "상대 경로(/shop/...) 또는 전체 URL(https://...) 모두 가능합니다. {orderId}는 주문번호로 자동 치환됩니다.",
+        "redirect_fail_url": "결제 실패 리다이렉트 URL",
+        "redirect_fail_url_hint": "상대 경로 또는 전체 URL 모두 가능합니다. 오류 정보는 쿼리 파라미터로 자동 추가됩니다."
+    },
     "messages": {
         "refund": {
             "missing_tid": "결제 거래번호(TID)가 없습니다.",
