@@ -88,7 +88,13 @@ export async function requestPaymentHandler(action: any, _context?: any): Promis
         }
 
         if (!window.PAYNICE) {
-            console.error('[sirsoft-pay-nicepayments] PAYNICE SDK not available');
+            const isHttp = window.location.protocol === 'http:';
+            const msg = isHttp
+                ? '나이스페이먼츠 결제창은 HTTPS 환경에서만 동작합니다.'
+                : '나이스페이먼츠 SDK를 불러올 수 없습니다. 잠시 후 다시 시도해주세요.';
+            G7Core?.toast?.error?.(msg);
+            G7Core?.state?.setLocal?.({ isSubmittingOrder: false });
+            console.error('[sirsoft-pay-nicepayments] PAYNICE SDK not available', { isHttp });
             return;
         }
 
@@ -110,9 +116,7 @@ export async function requestPaymentHandler(action: any, _context?: any): Promis
 
     } catch (error: unknown) {
         console.error('[sirsoft-pay-nicepayments] requestPayment error', error);
-
-        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-        G7Core?.state?.setLocal?.({ paymentErrorMessage: errorMessage, isSubmittingOrder: false });
-        G7Core?.modal?.open?.('nicepayments_payment_error_modal');
+        G7Core?.state?.setLocal?.({ isSubmittingOrder: false });
+        G7Core?.toast?.error?.('결제 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
     }
 }
