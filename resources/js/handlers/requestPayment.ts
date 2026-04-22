@@ -54,10 +54,11 @@ function isMobileDevice(): boolean {
     return /Mobile|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 }
 
-function createPaymentForm(fields: Record<string, string>): HTMLFormElement {
+function createPaymentForm(action: string, fields: Record<string, string>): HTMLFormElement {
     const form = document.createElement('form');
     form.id = 'nicepayForm';
     form.method = 'post';
+    form.action = action;
 
     for (const [name, value] of Object.entries(fields)) {
         const input = document.createElement('input');
@@ -131,7 +132,7 @@ export async function requestPaymentHandler(action: any, _context?: any): Promis
         const callbackUrl = window.location.origin + config.callback_url;
 
         // 4. 결제 폼 생성
-        const form = createPaymentForm({
+        const form = createPaymentForm(callbackUrl, {
             PayMethod: 'CARD',
             GoodsName: pgPaymentData.order_name,
             Amt: String(pgPaymentData.amount),
