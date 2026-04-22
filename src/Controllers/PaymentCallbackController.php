@@ -6,6 +6,7 @@ namespace Plugins\Sirsoft\Pay\Nicepayments\Controllers;
 
 use App\Extension\HookManager;
 use App\Services\PluginSettingsService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Log;
@@ -172,6 +173,30 @@ class PaymentCallbackController
                 'orderId' => $moid,
             ]));
         }
+    }
+
+    /**
+     * 결제 요청 SignData 생성
+     *
+     * POST /plugins/sirsoft-pay-nicepayments/payment/sign-data
+     */
+    public function signData(Request $request): JsonResponse
+    {
+        $amt = (int) $request->input('amt', 0);
+        $moid = (string) $request->input('moid', '');
+
+        if ($amt <= 0 || $moid === '') {
+            return response()->json(['error' => '잘못된 요청입니다.'], 400);
+        }
+
+        $ediDate = $this->apiService->generateEdiDate();
+        $signData = $this->apiService->generateSignData($ediDate, $amt);
+
+        return response()->json([
+            'ediDate' => $ediDate,
+            'signData' => $signData,
+            'mid' => $this->apiService->getMid(),
+        ]);
     }
 
     /**

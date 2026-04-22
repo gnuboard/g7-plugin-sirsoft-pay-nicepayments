@@ -157,8 +157,21 @@ class NicePaymentsApiService
     /**
      * EdiDate 생성 (YYYYMMDDHHmmss 형식, 숫자만)
      */
-    private function computeEdiDate(): string
+    public function generateEdiDate(): string
     {
         return preg_replace('/[^0-9]/', '', now()->format('Y-m-d H:i:s')) ?? now()->format('YmdHis');
+    }
+
+    /**
+     * 결제 요청 SignData 생성 (hex(sha256(EdiDate + MID + Amt + MerchantKey)))
+     */
+    public function generateSignData(string $ediDate, int $amt): string
+    {
+        return bin2hex(hash('sha256', $ediDate . $this->mid . (string) $amt . $this->merchantKey, true));
+    }
+
+    private function computeEdiDate(): string
+    {
+        return $this->generateEdiDate();
     }
 }

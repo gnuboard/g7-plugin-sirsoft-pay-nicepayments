@@ -20,6 +20,11 @@ Route::post('/payment/callback', [PaymentCallbackController::class, 'authCallbac
     ->withoutMiddleware([\App\Http\Middleware\VerifyCsrfToken::class])
     ->name('payment.callback');
 
+// SignData 생성 (브라우저 AJAX → 서버, CSRF 제외)
+Route::post('/payment/sign-data', [PaymentCallbackController::class, 'signData'])
+    ->withoutMiddleware([\App\Http\Middleware\VerifyCsrfToken::class])
+    ->name('payment.sign-data');
+
 // 가상계좌 입금 통보 (나이스페이먼츠 서버 → 우리 서버 POST)
 Route::post('/payment/vbank-notify', [PaymentCallbackController::class, 'vbankNotify'])
     ->withoutMiddleware([\App\Http\Middleware\VerifyCsrfToken::class])
