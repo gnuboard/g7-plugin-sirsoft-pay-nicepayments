@@ -24,7 +24,7 @@ interface ClientConfig {
 
 declare global {
     interface Window {
-        PAYNICE: any;
+        AUTHNICE: any;
     }
 }
 
@@ -78,30 +78,30 @@ export async function requestPaymentHandler(action: any, _context?: any): Promis
 
         const config: ClientConfig = configJson.data;
 
-        // 2. PAYNICE SDK 동적 로드
-        if (!window.PAYNICE) {
+        // 2. AUTHNICE SDK 동적 로드
+        if (!window.AUTHNICE) {
             await loadScript(config.sdk_url);
         }
 
-        if (!window.PAYNICE) {
+        if (!window.AUTHNICE) {
             await new Promise<void>((resolve) => setTimeout(resolve, 100));
         }
 
-        if (!window.PAYNICE) {
+        if (!window.AUTHNICE) {
             const isHttp = window.location.protocol === 'http:';
             const msg = isHttp
                 ? '나이스페이먼츠 결제창은 HTTPS 환경에서만 동작합니다.'
                 : '나이스페이먼츠 SDK를 불러올 수 없습니다. 잠시 후 다시 시도해주세요.';
             G7Core?.toast?.error?.(msg);
             G7Core?.state?.setLocal?.({ isSubmittingOrder: false });
-            console.error('[sirsoft-pay-nicepayments] PAYNICE SDK not available', { isHttp });
+            console.error('[sirsoft-pay-nicepayments] AUTHNICE SDK not available', { isHttp });
             return;
         }
 
         // 3. 결제 요청
         const callbackUrl = window.location.origin + config.callback_urls.callback;
 
-        window.PAYNICE.requestPay({
+        window.AUTHNICE.requestPay({
             clientId: config.client_id,
             method: 'card',
             orderId: pgPaymentData.order_number,
