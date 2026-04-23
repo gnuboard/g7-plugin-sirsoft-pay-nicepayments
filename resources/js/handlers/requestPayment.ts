@@ -88,7 +88,10 @@ function createPaymentForm(action: string, fields: Record<string, string>): HTML
  *   5. 결제 완료 시 나이스페이먼츠가 ReturnURL(POST)로 인증값 전달
  */
 export async function requestPaymentHandler(action: any, _context?: any): Promise<void> {
-    const { pgPaymentData, paymentMethod } = (action.params || {}) as RequestPaymentParams;
+    const { pgPaymentData, paymentMethod: paramPaymentMethod } = (action.params || {}) as RequestPaymentParams;
+
+    const localState = (window as any).__templateApp?.globalState?._local;
+    const paymentMethod = paramPaymentMethod ?? localState?.paymentMethod ?? 'card';
 
     if (!pgPaymentData) {
         console.error('[sirsoft-pay-nicepayments] pgPaymentData is required');
