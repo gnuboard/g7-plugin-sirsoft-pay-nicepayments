@@ -74,7 +74,7 @@ class NicePaymentsApiService
         $ediDate = $this->computeEdiDate();
         $signData = bin2hex(hash('sha256', $authToken . $this->mid . (string) $amt . $ediDate . $this->merchantKey, true));
 
-        $response = Http::asForm()->post($nextAppUrl, [
+        $response = Http::timeout(15)->asForm()->post($nextAppUrl, [
             'TID' => $txTid,
             'AuthToken' => $authToken,
             'MID' => $this->mid,
@@ -112,7 +112,7 @@ class NicePaymentsApiService
         $ediDate = $this->computeEdiDate();
         $signData = bin2hex(hash('sha256', $this->mid . (string) $cancelAmt . $ediDate . $this->merchantKey, true));
 
-        $response = Http::asForm()->post(self::CANCEL_URL, [
+        $response = Http::timeout(15)->asForm()->post(self::CANCEL_URL, [
             'TID' => $tid,
             'MID' => $this->mid,
             'Moid' => $moid,
@@ -154,7 +154,7 @@ class NicePaymentsApiService
         $ediDate = $this->computeEdiDate();
         $signData = bin2hex(hash('sha256', $this->mid . $tid . $ediDate . $this->merchantKey, true));
 
-        $response = Http::asForm()->post(self::QUERY_URL, [
+        $response = Http::timeout(15)->asForm()->post(self::QUERY_URL, [
             'TID' => $tid,
             'MID' => $this->mid,
             'EdiDate' => $ediDate,
@@ -184,7 +184,7 @@ class NicePaymentsApiService
         }
 
         try {
-            Http::asForm()->post($netCancelUrl, [
+            Http::timeout(10)->asForm()->post($netCancelUrl, [
                 'NetCancel' => 1,
                 'AuthToken' => $authToken,
                 'MID' => $this->mid,

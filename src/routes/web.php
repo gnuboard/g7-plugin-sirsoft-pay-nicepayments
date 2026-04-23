@@ -21,12 +21,15 @@ Route::withoutMiddleware([\Illuminate\Foundation\Http\Middleware\ValidateCsrfTok
         Route::post('/payment/callback', [PaymentCallbackController::class, 'authCallback'])
             ->name('payment.callback');
 
-        // SignData 생성 (브라우저 AJAX → 서버)
-        Route::post('/payment/sign-data', [PaymentCallbackController::class, 'signData'])
-            ->name('payment.sign-data')
-            ->middleware('throttle:30,1');
-
         // 가상계좌 입금 통보 (나이스페이먼츠 서버 → 우리 서버 POST)
         Route::post('/payment/vbank-notify', [PaymentCallbackController::class, 'vbankNotify'])
             ->name('payment.vbank-notify');
+    });
+
+// SignData 생성: CSRF 제외 + 인증 필수 (로그인 사용자만 결제 가능)
+Route::withoutMiddleware([\Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class])
+    ->middleware(['auth', 'throttle:30,1'])
+    ->group(function () {
+        Route::post('/payment/sign-data', [PaymentCallbackController::class, 'signData'])
+            ->name('payment.sign-data');
     });

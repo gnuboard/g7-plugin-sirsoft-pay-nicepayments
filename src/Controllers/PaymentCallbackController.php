@@ -64,6 +64,7 @@ class PaymentCallbackController
                 'moid' => $moid,
                 'auth_result_code' => $authResultCode,
                 'auth_result_msg' => $validated['AuthResultMsg'] ?? '',
+                'ip' => $request->ip(),
             ]);
 
             return redirect($this->resolveFailUrl([
@@ -78,6 +79,7 @@ class PaymentCallbackController
                 'received_mid' => $mid,
                 'config_mid' => $this->apiService->getMid(),
                 'moid' => $moid,
+                'ip' => $request->ip(),
             ]);
 
             return redirect($this->resolveFailUrl(['error' => 'mid_mismatch', 'orderId' => $moid]));
@@ -85,7 +87,7 @@ class PaymentCallbackController
 
         // 3단계: 서명 검증
         if (! $this->apiService->verifyCallbackSignature($authToken, $mid, $amt, $signature)) {
-            Log::error('NicePayments: signature verification failed', ['moid' => $moid]);
+            Log::error('NicePayments: signature verification failed', ['moid' => $moid, 'ip' => $request->ip()]);
 
             return redirect($this->resolveFailUrl(['error' => 'signature_mismatch', 'orderId' => $moid]));
         }
@@ -224,6 +226,29 @@ class PaymentCallbackController
 
         if ($amt <= 0 || $moid === '') {
             return response()->json(['error' => '잘못된 요청입니다.'], 400);
+        }
+
+        // 주문 금액 검증: 클라이언트가 임의 금액으로 SignData를 요청하는 조작 방지
+        $order = $this->orderService->findByOrderNumber($moid);
+
+        if (! $order) {
+            Log::warning('NicePayments: SignData - order not found', [
+                'moid' => $moid,
+                'ip' => $request->ip(),
+            ]);
+
+            return response()->json(['error' => '주문을 찾을 수 없습니다.'], 422);
+        }
+
+        if ((int) $order->total_amount !== $amt) {
+            Log::warning('NicePayments: SignData amount mismatch', [
+                'moid' => $moid,
+                'requested_amt' => $amt,
+                'actual_amt' => $order->total_amount,
+                'ip' => $request->ip(),
+            ]);
+
+            return response()->json(['error' => '요청 금액이 유효하지 않습니다.'], 422);
         }
 
         $ediDate = $this->apiService->generateEdiDate();

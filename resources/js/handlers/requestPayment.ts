@@ -49,7 +49,6 @@ interface RequestPaymentParams {
 interface ClientConfig {
     mid: string;
     sdk_url: string;
-    callback_url: string;
     sign_data_url: string;
 }
 
@@ -105,6 +104,8 @@ function createPaymentForm(action: string, fields: Record<string, string>): HTML
     document.body.appendChild(form);
     return form;
 }
+
+const CALLBACK_PATH = '/plugins/sirsoft-pay-nicepayments/payment/callback';
 
 /**
  * 나이스페이먼츠 결제창 호출 핸들러 (나이스페이 구형 API, goPay 방식)
@@ -166,7 +167,7 @@ export async function requestPaymentHandler(action: PaymentAction, _context?: un
         }
 
         const signData: SignDataResponse = await signDataRes.json();
-        const callbackUrl = window.location.origin + config.callback_url;
+        const callbackUrl = window.location.origin + CALLBACK_PATH;
 
         // 4. 결제 폼 생성
         const payMethodMap: Record<string, string> = {

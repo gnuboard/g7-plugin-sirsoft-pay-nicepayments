@@ -13,7 +13,7 @@ use Plugins\Sirsoft\Pay\Nicepayments\Controllers\AdminTransactionController;
 |
 */
 
-Route::prefix('admin')->name('admin.')->group(function () {
+Route::prefix('admin')->name('admin.')->middleware(['auth:sanctum', 'admin'])->group(function () {
     // TID 단건 거래 조회
     Route::post('/transaction/query', [AdminTransactionController::class, 'query'])
         ->name('transaction.query');
