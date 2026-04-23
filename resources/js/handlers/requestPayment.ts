@@ -168,7 +168,12 @@ export async function requestPaymentHandler(action: any, _context?: any): Promis
             form.submit();
         };
 
-        window.nicepayClose = (_resultCode: string, resultMsg: string) => {
+        let paymentClosed = false;
+
+        const closePayment = (_resultCode: string, resultMsg: string) => {
+            if (paymentClosed) return;
+            paymentClosed = true;
+            window.removeEventListener('popstate', handlePopState);
             if (form.parentNode) {
                 form.parentNode.removeChild(form);
             }
@@ -177,6 +182,15 @@ export async function requestPaymentHandler(action: any, _context?: any): Promis
                 G7Core?.toast?.error?.(resultMsg);
             }
         };
+
+        window.nicepayClose = closePayment;
+
+        // 뒤로가기(popstate) 감지 → 결제창 정리
+        const handlePopState = () => closePayment('', '');
+
+        // 결제창 열기 전 history state 추가 → 뒤로가기 시 popstate 발생
+        window.history.pushState({ nicepayOpen: true }, '');
+        window.addEventListener('popstate', handlePopState);
 
         // 6. 결제창 호출 (SDK가 PC/모바일 자동 감지 처리)
         window.goPay(form);
