@@ -8,6 +8,7 @@ interface PgPaymentData {
     customer_name?: string;
     customer_email?: string;
     customer_phone?: string;
+    goods_cl?: string; // 휴대폰결제 상품 유형: '0'=디지털컨텐츠, '1'=실물
 }
 
 interface RequestPaymentParams {
@@ -49,10 +50,6 @@ function loadScript(src: string): Promise<void> {
         script.onerror = () => reject(new Error(`Failed to load script: ${src}`));
         document.head.appendChild(script);
     });
-}
-
-function isMobileDevice(): boolean {
-    return /Mobile|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 }
 
 function createPaymentForm(action: string, fields: Record<string, string>): HTMLFormElement {
@@ -144,7 +141,7 @@ export async function requestPaymentHandler(action: any, _context?: any): Promis
         };
         const payMethod = payMethodMap[paymentMethod ?? 'card'] ?? 'CARD';
 
-        const form = createPaymentForm(callbackUrl, {
+        const formFields: Record<string, string> = {
             PayMethod: payMethod,
             GoodsName: pgPaymentData.order_name,
             Amt: String(pgPaymentData.amount),
@@ -157,7 +154,14 @@ export async function requestPaymentHandler(action: any, _context?: any): Promis
             EdiDate: signData.ediDate,
             SignData: signData.signData,
             CharSet: 'utf-8',
-        });
+        };
+
+        // 휴대폰결제: 상품 유형 필수 (0:디지털컨텐츠, 1:실물)
+        if (payMethod === 'CELLPHONE') {
+            formFields.GoodsCl = pgPaymentData.goods_cl ?? '1';
+        }
+
+        const form = createPaymentForm(callbackUrl, formFields);
 
         // 5. 나이스페이 전역 콜백 정의
         window.nicepaySubmit = () => {
@@ -174,13 +178,8 @@ export async function requestPaymentHandler(action: any, _context?: any): Promis
             }
         };
 
-        // 6. 결제창 호출 (모바일: 직접 제출 / PC: 팝업)
-        if (isMobileDevice()) {
-            form.action = 'https://web.nicepay.co.kr/v3/v3Payment.jsp';
-            form.submit();
-        } else {
-            window.goPay(form);
-        }
+        // 6. 결제창 호출 (SDK가 PC/모바일 자동 감지 처리)
+        window.goPay(form);
 
     } catch (error: unknown) {
         console.error('[sirsoft-pay-nicepayments] requestPayment error', error);

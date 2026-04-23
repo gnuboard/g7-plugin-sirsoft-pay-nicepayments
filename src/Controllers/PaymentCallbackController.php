@@ -125,18 +125,20 @@ class PaymentCallbackController
             }
 
             // 5단계: 주문 완료 처리
+            $payMethod = $pgResponse['PayMethod'] ?? '';
+
             $this->orderService->completePayment($order, [
                 'transaction_id' => $pgResponse['TID'] ?? $txTid,
                 'card_approval_number' => $pgResponse['AppNo'] ?? null,
-                'card_number_masked' => $pgResponse['CardNum'] ?? $pgResponse['VBankNum'] ?? null,
-                'card_name' => $pgResponse['IssuCardName'] ?? $pgResponse['CardName'] ?? $pgResponse['VBankName'] ?? null,
+                'card_number_masked' => $payMethod === 'VBANK' ? null : ($pgResponse['CardNum'] ?? null),
+                'card_name' => $payMethod === 'VBANK' ? null : ($pgResponse['IssuCardName'] ?? $pgResponse['CardName'] ?? null),
                 'card_installment_months' => (int) ($pgResponse['CardQuota'] ?? 0),
                 'is_interest_free' => false,
                 'embedded_pg_provider' => null,
                 'receipt_url' => null,
                 'payment_meta' => [
                     'result_code' => $resultCode,
-                    'pay_method' => $pgResponse['PayMethod'] ?? null,
+                    'pay_method' => $payMethod,
                     'auth_date' => $pgResponse['AuthDate'] ?? null,
                     'vbank_num' => $pgResponse['VBankNum'] ?? null,
                     'vbank_name' => $pgResponse['VBankName'] ?? null,
@@ -145,6 +147,14 @@ class PaymentCallbackController
                 ],
                 'payment_device' => $this->detectDevice($request),
             ], $amt);
+
+            // 가상계좌 전용 필드 업데이트 (completePayment는 vbank 컬럼을 지원하지 않음)
+            if ($payMethod === 'VBANK') {
+                $order->payment()->update(array_filter([
+                    'vbank_name' => $pgResponse['VBankName'] ?? null,
+                    'vbank_number' => $pgResponse['VBankNum'] ?? null,
+                ], fn ($v) => $v !== null));
+            }
 
             return redirect($this->resolveSuccessUrl($moid));
 
