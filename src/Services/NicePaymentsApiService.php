@@ -66,6 +66,11 @@ class NicePaymentsApiService
      */
     public function authorizePayment(string $nextAppUrl, string $txTid, string $authToken, int $amt): array
     {
+        // SSRF 방지: NextAppURL은 반드시 나이스페이먼츠 공식 도메인이어야 함
+        if (! $this->isNicePayUrl($nextAppUrl)) {
+            throw new \InvalidArgumentException('Invalid NextAppURL host: ' . parse_url($nextAppUrl, PHP_URL_HOST));
+        }
+
         $ediDate = $this->computeEdiDate();
         $signData = bin2hex(hash('sha256', $authToken . $this->mid . (string) $amt . $ediDate . $this->merchantKey, true));
 
@@ -172,6 +177,12 @@ class NicePaymentsApiService
      */
     public function sendNetCancel(string $netCancelUrl, string $authToken): void
     {
+        if (! $this->isNicePayUrl($netCancelUrl)) {
+            Log::warning('NicePayments: invalid net cancel URL skipped', ['url' => parse_url($netCancelUrl, PHP_URL_HOST)]);
+
+            return;
+        }
+
         try {
             Http::asForm()->post($netCancelUrl, [
                 'NetCancel' => 1,
@@ -202,5 +213,15 @@ class NicePaymentsApiService
     private function computeEdiDate(): string
     {
         return $this->generateEdiDate();
+    }
+
+    /** NextAppURL / NetCancelURL이 나이스페이먼츠 공식 도메인인지 검증 (SSRF 방지) */
+    private function isNicePayUrl(string $url): bool
+    {
+        $parsed = parse_url($url);
+        $scheme = $parsed['scheme'] ?? '';
+        $host = $parsed['host'] ?? '';
+
+        return $scheme === 'https' && str_ends_with($host, '.nicepay.co.kr');
     }
 }

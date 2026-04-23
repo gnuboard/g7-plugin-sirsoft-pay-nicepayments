@@ -9,6 +9,7 @@ use App\Services\PluginSettingsService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Modules\Sirsoft\Ecommerce\Enums\PaymentStatusEnum;
 use Modules\Sirsoft\Ecommerce\Exceptions\PaymentAmountMismatchException;
@@ -66,8 +67,7 @@ class PaymentCallbackController
             ]);
 
             return redirect($this->resolveFailUrl([
-                'error' => $authResultCode,
-                'message' => $validated['AuthResultMsg'] ?? '',
+                'error' => 'auth_failed',
                 'orderId' => $moid,
             ]));
         }
@@ -119,8 +119,7 @@ class PaymentCallbackController
                 $this->orderService->failPayment($order, $resultCode, $pgResponse['ResultMsg'] ?? '');
 
                 return redirect($this->resolveFailUrl([
-                    'error' => $resultCode,
-                    'message' => $pgResponse['ResultMsg'] ?? '',
+                    'error' => 'authorize_failed',
                     'orderId' => $moid,
                 ]));
             }
@@ -154,7 +153,7 @@ class PaymentCallbackController
                         'vbank_exp_date' => isset($pgResponse['VbankExpDate'])
                             ? $pgResponse['VbankExpDate'] . ($pgResponse['VbankExpTime'] ?? '235959')
                             : null,
-                        'pg_raw_response' => $pgResponse,
+                        'pg_raw_response' => $this->sanitizePgResponse($pgResponse),
                     ];
                     $payment->save();
                 }
@@ -179,7 +178,7 @@ class PaymentCallbackController
                         'result_code' => $resultCode,
                         'pay_method' => $payMethod,
                         'auth_date' => $pgResponse['AuthDate'] ?? null,
-                        'pg_raw_response' => $pgResponse,
+                        'pg_raw_response' => $this->sanitizePgResponse($pgResponse),
                     ],
                     'payment_device' => $this->detectDevice($request),
                 ], $amt);
@@ -208,7 +207,6 @@ class PaymentCallbackController
 
             return redirect($this->resolveFailUrl([
                 'error' => 'authorize_failed',
-                'message' => $e->getMessage(),
                 'orderId' => $moid,
             ]));
         }
@@ -268,25 +266,35 @@ class PaymentCallbackController
                 return response('FAIL', 200)->header('Content-Type', 'text/plain');
             }
 
-            $payment = $order->payment;
-            if ($payment && $payment->transaction_id === $tid) {
+            $alreadyProcessed = false;
+
+            DB::transaction(function () use ($order, $tid, $amt, $validated, &$alreadyProcessed): void {
+                // 동시 입금 통보 중복 처리 방지: 행 단위 잠금
+                $payment = $order->payment()->lockForUpdate()->first();
+
+                if ($payment && $payment->transaction_id === $tid) {
+                    $alreadyProcessed = true;
+
+                    return;
+                }
+
+                $this->orderService->completePayment($order, [
+                    'transaction_id' => $tid,
+                    'payment_meta' => [
+                        'result_code' => '4100',
+                        'vbank_auth_date' => $validated['VbankAuthDate'] ?? null,
+                        'vbank_num' => $validated['VbankNum'] ?? null,
+                        'vbank_name' => $validated['VbankName'] ?? null,
+                        'pg_raw_response' => $this->sanitizePgResponse($validated),
+                    ],
+                ], $amt);
+            });
+
+            if ($alreadyProcessed) {
                 Log::info('NicePayments: vbank notify - already processed', ['tid' => $tid, 'moid' => $moid]);
-
-                return response('OK', 200)->header('Content-Type', 'text/plain');
+            } else {
+                Log::info('NicePayments: vbank deposit confirmed', ['tid' => $tid, 'moid' => $moid, 'amt' => $amt]);
             }
-
-            $this->orderService->completePayment($order, [
-                'transaction_id' => $tid,
-                'payment_meta' => [
-                    'result_code' => '4100',
-                    'vbank_auth_date' => $validated['VbankAuthDate'] ?? null,
-                    'vbank_num' => $validated['VbankNum'] ?? null,
-                    'vbank_name' => $validated['VbankName'] ?? null,
-                    'pg_raw_response' => $validated,
-                ],
-            ], $amt);
-
-            Log::info('NicePayments: vbank deposit confirmed', ['tid' => $tid, 'moid' => $moid, 'amt' => $amt]);
 
             return response('OK', 200)->header('Content-Type', 'text/plain');
 
@@ -322,6 +330,14 @@ class PaymentCallbackController
         $separator = str_contains($baseUrl, '?') ? '&' : '?';
 
         return $baseUrl . $separator . $query;
+    }
+
+    /** PG 응답에서 개인정보(PII) 필드 제거 후 반환 */
+    private function sanitizePgResponse(array $response): array
+    {
+        $piiFields = ['BuyerName', 'BuyerEmail', 'BuyerTel', 'CardNum'];
+
+        return array_diff_key($response, array_flip($piiFields));
     }
 
     private function detectDevice(Request $request): string
