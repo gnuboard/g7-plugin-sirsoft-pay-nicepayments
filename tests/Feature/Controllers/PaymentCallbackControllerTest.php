@@ -340,4 +340,24 @@ class PaymentCallbackControllerTest extends PluginTestCase
         $response->assertOk();
         $this->assertEquals('FAIL', $response->getContent());
     }
+
+    public function test_vbank_notify_is_idempotent_for_same_tid(): void
+    {
+        $tid = 'VBANK_TID_DUPLICATE';
+        $order = $this->createTestOrder(30000);
+        $order->payment()->update(['transaction_id' => $tid]);
+
+        $response = $this->post('/plugins/sirsoft-pay-nicepayments/payment/vbank-notify', [
+            'TID' => $tid,
+            'Moid' => $order->order_number,
+            'Amt' => 30000,
+            'VbankResult' => '1',
+        ]);
+
+        $response->assertOk();
+        $this->assertEquals('OK', $response->getContent());
+
+        $order->refresh();
+        $this->assertEquals(OrderStatusEnum::PENDING_ORDER, $order->order_status);
+    }
 }

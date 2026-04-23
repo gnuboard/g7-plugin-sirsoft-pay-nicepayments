@@ -13,6 +13,8 @@
         "live_mid": "라이브 가맹점 ID (MID)",
         "live_merchant_key": "라이브 가맹점 키",
         "live_merchant_key_hint": "외부에 노출되지 않도록 주의하세요.",
+        "live_mode_warning_title": "라이브 모드 활성화",
+        "live_mode_warning_body": "현재 실제 결제가 처리됩니다. 라이브 MID와 가맹점 키가 올바르게 설정되어 있는지 확인하세요.",
         "section_redirect": "리다이렉트 URL",
         "redirect_success_url": "결제 성공 리다이렉트 URL",
         "redirect_success_url_hint": "상대 경로(/shop/...) 또는 전체 URL(https://...) 모두 가능합니다. {orderId}는 주문번호로 자동 치환됩니다.",

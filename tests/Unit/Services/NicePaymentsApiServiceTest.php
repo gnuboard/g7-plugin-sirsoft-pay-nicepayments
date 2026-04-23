@@ -195,4 +195,47 @@ class NicePaymentsApiServiceTest extends PluginTestCase
 
         $this->assertTrue(true);
     }
+
+    public function test_query_transaction_calls_query_api(): void
+    {
+        $service = $this->makeService();
+        $tid = 'TID_QUERY_TEST';
+
+        Http::fake([
+            'pg-api.nicepay.co.kr/webapi/trade_status.jsp' => Http::response([
+                'ResultCode' => '2000',
+                'ResultMsg' => '정상처리',
+                'TID' => $tid,
+                'Amt' => '50000',
+            ], 200),
+        ]);
+
+        $result = $service->queryTransaction($tid);
+
+        $this->assertEquals('2000', $result['ResultCode']);
+        $this->assertEquals($tid, $result['TID']);
+
+        Http::assertSent(function ($request) use ($tid) {
+            return str_contains($request->url(), 'trade_status.jsp')
+                && $request['TID'] === $tid
+                && $request['MID'] === self::TEST_MID
+                && isset($request['EdiDate'])
+                && isset($request['SignData'])
+                && $request['CharSet'] === 'utf-8';
+        });
+    }
+
+    public function test_query_transaction_throws_on_http_error(): void
+    {
+        $service = $this->makeService();
+
+        Http::fake([
+            '*' => Http::response(null, 500),
+        ]);
+
+        $this->expectException(\Exception::class);
+        $this->expectExceptionMessageMatches('/HTTP 500/');
+
+        $service->queryTransaction('TID_TEST');
+    }
 }

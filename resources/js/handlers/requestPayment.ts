@@ -1,4 +1,34 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+interface G7ApiResponse {
+    data?: unknown;
+}
+
+interface G7CoreApi {
+    get: (url: string) => Promise<G7ApiResponse>;
+}
+
+interface G7CoreToast {
+    error: (message: string) => void;
+}
+
+interface G7CoreStateApi {
+    setLocal: (state: Record<string, unknown>) => void;
+}
+
+interface G7Core {
+    api: G7CoreApi;
+    toast?: G7CoreToast;
+    state?: G7CoreStateApi;
+}
+
+interface TemplateLocalState {
+    paymentMethod?: string;
+}
+
+interface TemplateApp {
+    globalState?: {
+        _local?: TemplateLocalState;
+    };
+}
 
 interface PgPaymentData {
     order_number: string;
@@ -29,11 +59,17 @@ interface SignDataResponse {
     mid: string;
 }
 
+interface PaymentAction {
+    params?: RequestPaymentParams;
+}
+
 declare global {
     interface Window {
         nicepaySubmit: () => void;
         nicepayClose: (resultCode: string, resultMsg: string) => void;
         goPay: (form: HTMLFormElement) => void;
+        G7Core: G7Core;
+        __templateApp?: TemplateApp;
     }
 }
 
@@ -84,10 +120,10 @@ function createPaymentForm(action: string, fields: Record<string, string>): HTML
  *   4. 결제 폼 생성 후 goPay(form) 호출 (PC) / 직접 폼 제출 (모바일)
  *   5. 결제 완료 시 나이스페이먼츠가 ReturnURL(POST)로 인증값 전달
  */
-export async function requestPaymentHandler(action: any, _context?: any): Promise<void> {
-    const { pgPaymentData, paymentMethod: paramPaymentMethod } = (action.params || {}) as RequestPaymentParams;
+export async function requestPaymentHandler(action: PaymentAction, _context?: unknown): Promise<void> {
+    const { pgPaymentData, paymentMethod: paramPaymentMethod } = action.params ?? {};
 
-    const localState = (window as any).__templateApp?.globalState?._local;
+    const localState = window.__templateApp?.globalState?._local;
     const paymentMethod = paramPaymentMethod ?? localState?.paymentMethod ?? 'card';
 
     if (!pgPaymentData) {
@@ -95,7 +131,7 @@ export async function requestPaymentHandler(action: any, _context?: any): Promis
         return;
     }
 
-    const G7Core = (window as any).G7Core;
+    const G7Core = window.G7Core;
 
     try {
         // 1. Client Config 가져오기
@@ -106,7 +142,7 @@ export async function requestPaymentHandler(action: any, _context?: any): Promis
             return;
         }
 
-        const config: ClientConfig = configJson.data;
+        const config = configJson.data as ClientConfig;
 
         // 2. nicepay-pgweb.js SDK 동적 로드
         await loadScript(config.sdk_url);
@@ -164,11 +200,11 @@ export async function requestPaymentHandler(action: any, _context?: any): Promis
         // 4-2. 과세/비과세 금액 조회 (optional — 실패해도 결제 진행)
         try {
             const orderRes = await G7Core.api.get(`/modules/sirsoft-ecommerce/user/orders/${pgPaymentData.order_number}`);
-            const od = orderRes?.data;
+            const od = orderRes?.data as Record<string, unknown> | null | undefined;
             if (od) {
-                const taxAmt = Number(od.total_tax_amount ?? 0);
-                const vatAmt = Number(od.total_vat_amount ?? 0);
-                const taxFreeAmt = Number(od.total_tax_free_amount ?? 0);
+                const taxAmt = Number(od['total_tax_amount'] ?? 0);
+                const vatAmt = Number(od['total_vat_amount'] ?? 0);
+                const taxFreeAmt = Number(od['total_tax_free_amount'] ?? 0);
                 if (taxAmt > 0 || vatAmt > 0 || taxFreeAmt > 0) {
                     formFields.TaxAmt = String(taxAmt);
                     formFields.VatAmt = String(vatAmt);

@@ -23,7 +23,8 @@ Route::withoutMiddleware([\Illuminate\Foundation\Http\Middleware\ValidateCsrfTok
 
         // SignData 생성 (브라우저 AJAX → 서버)
         Route::post('/payment/sign-data', [PaymentCallbackController::class, 'signData'])
-            ->name('payment.sign-data');
+            ->name('payment.sign-data')
+            ->middleware('throttle:30,1');
 
         // 가상계좌 입금 통보 (나이스페이먼츠 서버 → 우리 서버 POST)
         Route::post('/payment/vbank-notify', [PaymentCallbackController::class, 'vbankNotify'])

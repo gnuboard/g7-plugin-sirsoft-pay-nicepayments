@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Plugins\Sirsoft\Pay\Nicepayments\Listeners;
 
 use App\Contracts\Extension\HookListenerInterface;
+use App\Extension\HookManager;
 use Illuminate\Support\Facades\Log;
 use Modules\Sirsoft\Ecommerce\Models\Order;
 use Modules\Sirsoft\Ecommerce\Models\OrderPayment;
@@ -73,6 +74,12 @@ class PaymentRefundListener implements HookListenerInterface
         } catch (\Exception $e) {
             Log::error('NicePayments: refund failed', [
                 'order_id' => $order->id,
+                'tid' => $tid,
+                'cancel_amt' => (int) $refundAmount,
+                'error' => $e->getMessage(),
+            ]);
+
+            HookManager::doAction('sirsoft-pay-nicepayments.payment.refund_failed', $order, $payment, [
                 'tid' => $tid,
                 'cancel_amt' => (int) $refundAmount,
                 'error' => $e->getMessage(),

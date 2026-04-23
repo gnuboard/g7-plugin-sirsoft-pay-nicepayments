@@ -16,9 +16,16 @@ use Illuminate\Foundation\Http\FormRequest;
  */
 class VbankNotifyRequest extends FormRequest
 {
+    /** 나이스페이먼츠 공식 서버 IP 목록 */
+    private const ALLOWED_IPS = ['121.133.126.10', '121.133.126.11', '211.33.136.39'];
+
     public function authorize(): bool
     {
-        return true;
+        if (app()->environment('testing', 'local')) {
+            return true;
+        }
+
+        return in_array($this->ip(), self::ALLOWED_IPS, true);
     }
 
     public function rules(): array

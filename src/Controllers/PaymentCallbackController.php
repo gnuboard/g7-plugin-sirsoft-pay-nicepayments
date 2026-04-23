@@ -135,7 +135,7 @@ class PaymentCallbackController
                 'card_installment_months' => (int) ($pgResponse['CardQuota'] ?? 0),
                 'is_interest_free' => false,
                 'embedded_pg_provider' => null,
-                'receipt_url' => null,
+                'receipt_url' => $pgResponse['ReceiptUrl'] ?? null,
                 'payment_meta' => [
                     'result_code' => $resultCode,
                     'pay_method' => $payMethod,
@@ -237,6 +237,13 @@ class PaymentCallbackController
                 Log::error('NicePayments: vbank notify - order not found', ['moid' => $moid, 'tid' => $tid]);
 
                 return response('FAIL', 200)->header('Content-Type', 'text/plain');
+            }
+
+            $payment = $order->payment;
+            if ($payment && $payment->transaction_id === $tid) {
+                Log::info('NicePayments: vbank notify - already processed', ['tid' => $tid, 'moid' => $moid]);
+
+                return response('OK', 200)->header('Content-Type', 'text/plain');
             }
 
             $this->orderService->completePayment($order, [

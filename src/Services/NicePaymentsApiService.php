@@ -12,6 +12,8 @@ class NicePaymentsApiService
 {
     private const CANCEL_URL = 'https://pg-api.nicepay.co.kr/webapi/cancel_process.jsp';
 
+    private const QUERY_URL = 'https://pg-api.nicepay.co.kr/webapi/trade_status.jsp';
+
     private const PLUGIN_IDENTIFIER = 'sirsoft-pay-nicepayments';
 
     private bool $isTest;
@@ -133,6 +135,33 @@ class NicePaymentsApiService
         }
 
         return $result;
+    }
+
+    /**
+     * 단건 거래 조회 API 호출
+     *
+     * @param string $tid 조회할 거래번호
+     * @return array PG 응답 데이터
+     * @throws \Exception API 호출 실패 시
+     */
+    public function queryTransaction(string $tid): array
+    {
+        $ediDate = $this->computeEdiDate();
+        $signData = bin2hex(hash('sha256', $this->mid . $tid . $ediDate . $this->merchantKey, true));
+
+        $response = Http::asForm()->post(self::QUERY_URL, [
+            'TID' => $tid,
+            'MID' => $this->mid,
+            'EdiDate' => $ediDate,
+            'SignData' => $signData,
+            'CharSet' => 'utf-8',
+        ]);
+
+        if ($response->failed()) {
+            throw new \Exception('NicePayments query API error: HTTP ' . $response->status());
+        }
+
+        return $response->json() ?? [];
     }
 
     /**
