@@ -642,6 +642,267 @@
                         ]
                     },
                     {
+                        "id": "transaction_query_section",
+                        "type": "basic",
+                        "name": "Div",
+                        "props": {
+                            "className": "mt-6 bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700"
+                        },
+                        "children": [
+                            {
+                                "type": "basic",
+                                "name": "Div",
+                                "props": {
+                                    "className": "px-6 py-4 border-b border-gray-200 dark:border-gray-700"
+                                },
+                                "children": [
+                                    {
+                                        "type": "basic",
+                                        "name": "H3",
+                                        "props": {
+                                            "className": "text-base font-semibold text-gray-900 dark:text-white"
+                                        },
+                                        "text": "$t:sirsoft-pay-nicepayments.admin.transaction_query_title"
+                                    },
+                                    {
+                                        "type": "basic",
+                                        "name": "P",
+                                        "props": {
+                                            "className": "mt-1 text-sm text-gray-500 dark:text-gray-400"
+                                        },
+                                        "text": "$t:sirsoft-pay-nicepayments.admin.transaction_query_description"
+                                    }
+                                ]
+                            },
+                            {
+                                "type": "basic",
+                                "name": "Div",
+                                "props": {
+                                    "className": "p-6"
+                                },
+                                "children": [
+                                    {
+                                        "type": "basic",
+                                        "name": "Div",
+                                        "props": {
+                                            "className": "flex gap-3 items-end"
+                                        },
+                                        "children": [
+                                            {
+                                                "type": "basic",
+                                                "name": "Div",
+                                                "props": {
+                                                    "className": "flex-1"
+                                                },
+                                                "children": [
+                                                    {
+                                                        "type": "basic",
+                                                        "name": "Label",
+                                                        "props": {
+                                                            "className": "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+                                                        },
+                                                        "text": "$t:sirsoft-pay-nicepayments.admin.transaction_tid_label"
+                                                    },
+                                                    {
+                                                        "type": "basic",
+                                                        "name": "Input",
+                                                        "props": {
+                                                            "type": "text",
+                                                            "name": "_tid_query_input",
+                                                            "placeholder": "nicepay00m20240101...",
+                                                            "className": "w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono text-sm"
+                                                        },
+                                                        "bindLocal": "_tidInput"
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "type": "basic",
+                                                "name": "Button",
+                                                "props": {
+                                                    "disabled": "{{_local._isQuerying}}",
+                                                    "className": "flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+                                                },
+                                                "actions": [
+                                                    {
+                                                        "type": "click",
+                                                        "handler": "sequence",
+                                                        "actions": [
+                                                            {
+                                                                "handler": "setState",
+                                                                "params": {
+                                                                    "target": "local",
+                                                                    "_isQuerying": true,
+                                                                    "_queryResult": null,
+                                                                    "_queryError": null
+                                                                }
+                                                            },
+                                                            {
+                                                                "handler": "apiCall",
+                                                                "auth_required": true,
+                                                                "target": "/api/plugins/sirsoft-pay-nicepayments/admin/transaction/query",
+                                                                "params": {
+                                                                    "method": "POST",
+                                                                    "body": {
+                                                                        "tid": "{{_local._tidInput}}"
+                                                                    }
+                                                                },
+                                                                "onSuccess": [
+                                                                    {
+                                                                        "handler": "setState",
+                                                                        "params": {
+                                                                            "target": "local",
+                                                                            "_isQuerying": false,
+                                                                            "_queryResult": "{{$response.data}}"
+                                                                        }
+                                                                    }
+                                                                ],
+                                                                "onError": [
+                                                                    {
+                                                                        "handler": "setState",
+                                                                        "params": {
+                                                                            "target": "local",
+                                                                            "_isQuerying": false,
+                                                                            "_queryError": "$t:sirsoft-pay-nicepayments.admin.transaction_query_error"
+                                                                        }
+                                                                    }
+                                                                ]
+                                                            }
+                                                        ]
+                                                    }
+                                                ],
+                                                "children": [
+                                                    {
+                                                        "type": "basic",
+                                                        "name": "Icon",
+                                                        "if": "{{_local._isQuerying}}",
+                                                        "props": {
+                                                            "name": "spinner",
+                                                            "className": "w-4 h-4 animate-spin"
+                                                        }
+                                                    },
+                                                    {
+                                                        "type": "basic",
+                                                        "name": "Span",
+                                                        "text": "$t:sirsoft-pay-nicepayments.admin.transaction_query_button"
+                                                    }
+                                                ]
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        "type": "basic",
+                                        "name": "Div",
+                                        "if": "{{_local._queryError}}",
+                                        "props": {
+                                            "className": "mt-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-sm text-red-700 dark:text-red-300"
+                                        },
+                                        "text": "{{_local._queryError}}"
+                                    },
+                                    {
+                                        "type": "basic",
+                                        "name": "Div",
+                                        "if": "{{_local._queryResult}}",
+                                        "props": {
+                                            "className": "mt-4 p-4 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg"
+                                        },
+                                        "children": [
+                                            {
+                                                "type": "basic",
+                                                "name": "H4",
+                                                "props": {
+                                                    "className": "text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3"
+                                                },
+                                                "text": "$t:sirsoft-pay-nicepayments.admin.transaction_result_title"
+                                            },
+                                            {
+                                                "type": "basic",
+                                                "name": "Dl",
+                                                "props": {
+                                                    "className": "grid grid-cols-2 gap-x-4 gap-y-2 text-sm"
+                                                },
+                                                "children": [
+                                                    {
+                                                        "type": "basic",
+                                                        "name": "Dt",
+                                                        "props": { "className": "font-medium text-gray-500 dark:text-gray-400" },
+                                                        "text": "TID"
+                                                    },
+                                                    {
+                                                        "type": "basic",
+                                                        "name": "Dd",
+                                                        "props": { "className": "font-mono text-gray-900 dark:text-white" },
+                                                        "text": "{{_local._queryResult.TID ?? '-'}}"
+                                                    },
+                                                    {
+                                                        "type": "basic",
+                                                        "name": "Dt",
+                                                        "props": { "className": "font-medium text-gray-500 dark:text-gray-400" },
+                                                        "text": "$t:sirsoft-pay-nicepayments.admin.result_order_id"
+                                                    },
+                                                    {
+                                                        "type": "basic",
+                                                        "name": "Dd",
+                                                        "props": { "className": "text-gray-900 dark:text-white" },
+                                                        "text": "{{_local._queryResult.Moid ?? '-'}}"
+                                                    },
+                                                    {
+                                                        "type": "basic",
+                                                        "name": "Dt",
+                                                        "props": { "className": "font-medium text-gray-500 dark:text-gray-400" },
+                                                        "text": "$t:sirsoft-pay-nicepayments.admin.result_amount"
+                                                    },
+                                                    {
+                                                        "type": "basic",
+                                                        "name": "Dd",
+                                                        "props": { "className": "text-gray-900 dark:text-white" },
+                                                        "text": "{{_local._queryResult.Amt ?? '-'}}"
+                                                    },
+                                                    {
+                                                        "type": "basic",
+                                                        "name": "Dt",
+                                                        "props": { "className": "font-medium text-gray-500 dark:text-gray-400" },
+                                                        "text": "$t:sirsoft-pay-nicepayments.admin.result_status"
+                                                    },
+                                                    {
+                                                        "type": "basic",
+                                                        "name": "Dd",
+                                                        "props": { "className": "text-gray-900 dark:text-white" },
+                                                        "text": "{{_local._queryResult.PayStatus ?? '-'}}"
+                                                    },
+                                                    {
+                                                        "type": "basic",
+                                                        "name": "Dt",
+                                                        "props": { "className": "font-medium text-gray-500 dark:text-gray-400" },
+                                                        "text": "$t:sirsoft-pay-nicepayments.admin.result_method"
+                                                    },
+                                                    {
+                                                        "type": "basic",
+                                                        "name": "Dd",
+                                                        "props": { "className": "text-gray-900 dark:text-white" },
+                                                        "text": "{{_local._queryResult.PayMethod ?? '-'}}"
+                                                    },
+                                                    {
+                                                        "type": "basic",
+                                                        "name": "Dt",
+                                                        "props": { "className": "font-medium text-gray-500 dark:text-gray-400" },
+                                                        "text": "$t:sirsoft-pay-nicepayments.admin.result_result_code"
+                                                    },
+                                                    {
+                                                        "type": "basic",
+                                                        "name": "Dd",
+                                                        "props": { "className": "font-mono text-gray-900 dark:text-white" },
+                                                        "text": "{{(_local._queryResult.ResultCode ?? '') + ' ' + (_local._queryResult.ResultMsg ?? '')}}"
+                                                    }
+                                                ]
+                                            }
+                                        ]
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    {
                         "id": "footer_buttons",
                         "type": "basic",
                         "name": "Div",

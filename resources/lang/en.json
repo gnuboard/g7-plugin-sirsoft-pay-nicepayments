@@ -21,6 +21,20 @@
         "redirect_fail_url": "Payment Failure Redirect URL",
         "redirect_fail_url_hint": "Supports relative paths or full URLs. Error details are appended as query parameters."
     },
+    "admin": {
+        "transaction_query_title": "TID Transaction Query",
+        "transaction_query_description": "Query payment status directly using a NicePayments transaction ID (TID).",
+        "transaction_tid_label": "Transaction ID (TID)",
+        "transaction_query_button": "Query",
+        "transaction_query_error": "Query Failed",
+        "transaction_result_title": "Query Result",
+        "result_tid": "Transaction ID (TID)",
+        "result_order_id": "Order ID (Moid)",
+        "result_amount": "Amount",
+        "result_status": "Payment Status",
+        "result_method": "Payment Method",
+        "result_result_code": "Result Code"
+    },
     "messages": {
         "refund": {
             "missing_tid": "Payment transaction ID (TID) is missing.",

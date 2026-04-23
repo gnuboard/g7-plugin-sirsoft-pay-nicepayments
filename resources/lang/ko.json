@@ -21,6 +21,20 @@
         "redirect_fail_url": "결제 실패 리다이렉트 URL",
         "redirect_fail_url_hint": "상대 경로 또는 전체 URL 모두 가능합니다. 오류 정보는 쿼리 파라미터로 자동 추가됩니다."
     },
+    "admin": {
+        "transaction_query_title": "TID 거래 조회",
+        "transaction_query_description": "나이스페이먼츠 거래 ID(TID)로 결제 상태를 직접 조회합니다.",
+        "transaction_tid_label": "거래 ID (TID)",
+        "transaction_query_button": "조회",
+        "transaction_query_error": "조회 실패",
+        "transaction_result_title": "조회 결과",
+        "result_tid": "거래 ID (TID)",
+        "result_order_id": "주문번호 (Moid)",
+        "result_amount": "결제 금액",
+        "result_status": "결제 상태",
+        "result_method": "결제 수단",
+        "result_result_code": "결과 코드"
+    },
     "messages": {
         "refund": {
             "missing_tid": "결제 거래번호(TID)가 없습니다.",
