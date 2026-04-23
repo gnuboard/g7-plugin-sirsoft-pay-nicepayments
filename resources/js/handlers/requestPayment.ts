@@ -161,6 +161,24 @@ export async function requestPaymentHandler(action: any, _context?: any): Promis
             formFields.GoodsCl = pgPaymentData.goods_cl ?? '1';
         }
 
+        // 4-2. 과세/비과세 금액 조회 (optional — 실패해도 결제 진행)
+        try {
+            const orderRes = await G7Core.api.get(`/modules/sirsoft-ecommerce/user/orders/${pgPaymentData.order_number}`);
+            const od = orderRes?.data;
+            if (od) {
+                const taxAmt = Number(od.total_tax_amount ?? 0);
+                const vatAmt = Number(od.total_vat_amount ?? 0);
+                const taxFreeAmt = Number(od.total_tax_free_amount ?? 0);
+                if (taxAmt > 0 || vatAmt > 0 || taxFreeAmt > 0) {
+                    formFields.TaxAmt = String(taxAmt);
+                    formFields.VatAmt = String(vatAmt);
+                    formFields.TaxFreeAmt = String(taxFreeAmt);
+                }
+            }
+        } catch {
+            // 과세 필드는 선택 사항 — 조회 실패 시 미포함 상태로 진행
+        }
+
         const form = createPaymentForm(callbackUrl, formFields);
 
         // 5. 나이스페이 전역 콜백 정의
