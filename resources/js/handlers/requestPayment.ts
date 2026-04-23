@@ -170,17 +170,20 @@ export async function requestPaymentHandler(action: any, _context?: any): Promis
 
         let paymentClosed = false;
 
+        // goPay() 전 body 자식 스냅샷 — SDK가 추가하는 오버레이/iframe 식별용
+        const bodySnapshot = new Set(document.body.children);
+
         const closePayment = (_resultCode: string, resultMsg: string) => {
             if (paymentClosed) return;
             paymentClosed = true;
             window.removeEventListener('popstate', handlePopState);
-            if (form.parentNode) {
-                form.parentNode.removeChild(form);
-            }
+            // SDK가 body에 추가한 오버레이/iframe 등 제거
+            Array.from(document.body.children).forEach(el => {
+                if (!bodySnapshot.has(el)) el.remove();
+            });
+            if (form.parentNode) form.parentNode.removeChild(form);
             G7Core?.state?.setLocal?.({ isSubmittingOrder: false });
-            if (resultMsg) {
-                G7Core?.toast?.error?.(resultMsg);
-            }
+            if (resultMsg) G7Core?.toast?.error?.(resultMsg);
         };
 
         window.nicepayClose = closePayment;
