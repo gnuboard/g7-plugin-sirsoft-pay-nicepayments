@@ -10,6 +10,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Log;
+use Modules\Sirsoft\Ecommerce\Enums\PaymentStatusEnum;
 use Modules\Sirsoft\Ecommerce\Exceptions\PaymentAmountMismatchException;
 use Modules\Sirsoft\Ecommerce\Services\OrderProcessingService;
 use Plugins\Sirsoft\Pay\Nicepayments\Http\Requests\AuthCallbackRequest;
@@ -124,44 +125,64 @@ class PaymentCallbackController
                 ]));
             }
 
-            // 5단계: 주문 완료 처리
+            // 5단계: 결제 수단별 처리
             $payMethod = $pgResponse['PayMethod'] ?? '';
 
-            $this->orderService->completePayment($order, [
-                'transaction_id' => $pgResponse['TID'] ?? $txTid,
-                'card_approval_number' => $pgResponse['AppNo'] ?? null,
-                'card_number_masked' => $payMethod === 'VBANK' ? null : ($pgResponse['CardNum'] ?? null),
-                'card_name' => $payMethod === 'VBANK' ? null : ($pgResponse['IssuCardName'] ?? $pgResponse['CardName'] ?? null),
-                'card_installment_months' => (int) ($pgResponse['CardQuota'] ?? 0),
-                'is_interest_free' => false,
-                'embedded_pg_provider' => null,
-                'receipt_url' => $pgResponse['ReceiptUrl'] ?? null,
-                'payment_meta' => [
-                    'result_code' => $resultCode,
-                    'pay_method' => $payMethod,
-                    'auth_date' => $pgResponse['AuthDate'] ?? null,
-                    'vbank_num' => $pgResponse['VbankNum'] ?? null,
-                    'vbank_name' => $pgResponse['VbankBankName'] ?? null,
-                    'vbank_exp_date' => isset($pgResponse['VbankExpDate'])
-                        ? $pgResponse['VbankExpDate'] . ($pgResponse['VbankExpTime'] ?? '235959')
-                        : null,
-                    'pg_raw_response' => $pgResponse,
-                ],
-                'payment_device' => $this->detectDevice($request),
-            ], $amt);
-
-            // 가상계좌 전용 필드 업데이트 (completePayment는 vbank 컬럼을 지원하지 않음)
             if ($payMethod === 'VBANK') {
+                // 가상계좌: 계좌 발급 완료 → 입금 대기 상태로 전환
+                // 실제 결제 완료(PAYMENT_COMPLETE)는 입금 후 vbankNotify()에서 처리
                 $vbankDueAt = null;
                 if (isset($pgResponse['VbankExpDate'])) {
                     $dateStr = $pgResponse['VbankExpDate'] . ($pgResponse['VbankExpTime'] ?? '235959');
                     $vbankDueAt = \Carbon\Carbon::createFromFormat('YmdHis', $dateStr);
                 }
-                $order->payment()->update(array_filter([
+
+                $payment = $order->payment;
+                if ($payment) {
+                    $payment->payment_status = PaymentStatusEnum::WAITING_DEPOSIT;
+                    $payment->vbank_name = $pgResponse['VbankBankName'] ?? null;
+                    $payment->vbank_number = $pgResponse['VbankNum'] ?? null;
+                    $payment->vbank_due_at = $vbankDueAt;
+                    $payment->vbank_issued_at = now();
+                    $payment->payment_meta = [
+                        'result_code' => $resultCode,
+                        'pay_method' => $payMethod,
+                        'auth_date' => $pgResponse['AuthDate'] ?? null,
+                        'vbank_tid' => $pgResponse['TID'] ?? $txTid,
+                        'vbank_num' => $pgResponse['VbankNum'] ?? null,
+                        'vbank_name' => $pgResponse['VbankBankName'] ?? null,
+                        'vbank_exp_date' => isset($pgResponse['VbankExpDate'])
+                            ? $pgResponse['VbankExpDate'] . ($pgResponse['VbankExpTime'] ?? '235959')
+                            : null,
+                        'pg_raw_response' => $pgResponse,
+                    ];
+                    $payment->save();
+                }
+
+                Log::info('NicePayments: vbank account issued', [
+                    'moid' => $moid,
                     'vbank_name' => $pgResponse['VbankBankName'] ?? null,
                     'vbank_number' => $pgResponse['VbankNum'] ?? null,
-                    'vbank_due_at' => $vbankDueAt,
-                ], fn ($v) => $v !== null));
+                ]);
+            } else {
+                // 신용카드/기타: 즉시 결제 완료 처리
+                $this->orderService->completePayment($order, [
+                    'transaction_id' => $pgResponse['TID'] ?? $txTid,
+                    'card_approval_number' => $pgResponse['AppNo'] ?? null,
+                    'card_number_masked' => $pgResponse['CardNum'] ?? null,
+                    'card_name' => $pgResponse['IssuCardName'] ?? $pgResponse['CardName'] ?? null,
+                    'card_installment_months' => (int) ($pgResponse['CardQuota'] ?? 0),
+                    'is_interest_free' => false,
+                    'embedded_pg_provider' => null,
+                    'receipt_url' => $pgResponse['ReceiptUrl'] ?? null,
+                    'payment_meta' => [
+                        'result_code' => $resultCode,
+                        'pay_method' => $payMethod,
+                        'auth_date' => $pgResponse['AuthDate'] ?? null,
+                        'pg_raw_response' => $pgResponse,
+                    ],
+                    'payment_device' => $this->detectDevice($request),
+                ], $amt);
             }
 
             return redirect($this->resolveSuccessUrl($moid));
