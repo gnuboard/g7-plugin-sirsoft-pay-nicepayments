@@ -53,7 +53,7 @@ class RegisterPgProviderListener implements HookListenerInterface
             'mid' => $isTest
                 ? ($settings['test_mid'] ?? '')
                 : ($settings['live_mid'] ?? ''),
-            'sdk_url' => 'https://pg-web.nicepay.co.kr/v3/common/js/nicepay-pgweb.js',
+            'sdk_url' => 'https://web.nicepay.co.kr/v3/webstd/js/nicepay-3.0.js',
             'callback_url' => '/plugins/sirsoft-pay-nicepayments/payment/callback',
             'sign_data_url' => '/plugins/sirsoft-pay-nicepayments/payment/sign-data',
         ]);

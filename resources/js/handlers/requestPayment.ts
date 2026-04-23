@@ -12,6 +12,7 @@ interface PgPaymentData {
 
 interface RequestPaymentParams {
     pgPaymentData: PgPaymentData;
+    paymentMethod?: string;
 }
 
 interface ClientConfig {
@@ -87,7 +88,7 @@ function createPaymentForm(action: string, fields: Record<string, string>): HTML
  *   5. 결제 완료 시 나이스페이먼츠가 ReturnURL(POST)로 인증값 전달
  */
 export async function requestPaymentHandler(action: any, _context?: any): Promise<void> {
-    const { pgPaymentData } = (action.params || {}) as RequestPaymentParams;
+    const { pgPaymentData, paymentMethod } = (action.params || {}) as RequestPaymentParams;
 
     if (!pgPaymentData) {
         console.error('[sirsoft-pay-nicepayments] pgPaymentData is required');
@@ -132,8 +133,16 @@ export async function requestPaymentHandler(action: any, _context?: any): Promis
         const callbackUrl = window.location.origin + config.callback_url;
 
         // 4. 결제 폼 생성
+        const payMethodMap: Record<string, string> = {
+            card: 'CARD',
+            vbank: 'VBANK',
+            bank: 'BANK',
+            phone: 'CELLPHONE',
+        };
+        const payMethod = payMethodMap[paymentMethod ?? 'card'] ?? 'CARD';
+
         const form = createPaymentForm(callbackUrl, {
-            PayMethod: 'CARD',
+            PayMethod: payMethod,
             GoodsName: pgPaymentData.order_name,
             Amt: String(pgPaymentData.amount),
             MID: signData.mid,
