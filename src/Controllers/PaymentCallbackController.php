@@ -140,9 +140,11 @@ class PaymentCallbackController
                     'result_code' => $resultCode,
                     'pay_method' => $payMethod,
                     'auth_date' => $pgResponse['AuthDate'] ?? null,
-                    'vbank_num' => $pgResponse['VBankNum'] ?? null,
-                    'vbank_name' => $pgResponse['VBankName'] ?? null,
-                    'vbank_exp_date' => $pgResponse['VBankExpDate'] ?? null,
+                    'vbank_num' => $pgResponse['VbankNum'] ?? null,
+                    'vbank_name' => $pgResponse['VbankBankName'] ?? null,
+                    'vbank_exp_date' => isset($pgResponse['VbankExpDate'])
+                        ? $pgResponse['VbankExpDate'] . ($pgResponse['VbankExpTime'] ?? '235959')
+                        : null,
                     'pg_raw_response' => $pgResponse,
                 ],
                 'payment_device' => $this->detectDevice($request),
@@ -150,9 +152,15 @@ class PaymentCallbackController
 
             // 가상계좌 전용 필드 업데이트 (completePayment는 vbank 컬럼을 지원하지 않음)
             if ($payMethod === 'VBANK') {
+                $vbankDueAt = null;
+                if (isset($pgResponse['VbankExpDate'])) {
+                    $dateStr = $pgResponse['VbankExpDate'] . ($pgResponse['VbankExpTime'] ?? '235959');
+                    $vbankDueAt = \Carbon\Carbon::createFromFormat('YmdHis', $dateStr);
+                }
                 $order->payment()->update(array_filter([
-                    'vbank_name' => $pgResponse['VBankName'] ?? null,
-                    'vbank_number' => $pgResponse['VBankNum'] ?? null,
+                    'vbank_name' => $pgResponse['VbankBankName'] ?? null,
+                    'vbank_number' => $pgResponse['VbankNum'] ?? null,
+                    'vbank_due_at' => $vbankDueAt,
                 ], fn ($v) => $v !== null));
             }
 
