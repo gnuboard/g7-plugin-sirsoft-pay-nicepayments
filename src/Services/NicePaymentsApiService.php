@@ -60,18 +60,6 @@ class NicePaymentsApiService
     }
 
     /**
-     * 승인 응답 서명 검증: hex(sha256(TID + MID + Amt + MerchantKey))
-     *
-     * 나이스페이먼츠가 최종 승인 응답에 포함하는 Signature 검증 (위변조 감지)
-     */
-    public function verifyApprovalSignature(string $tid, int $amt, string $signature): bool
-    {
-        $expected = bin2hex(hash('sha256', $tid . $this->mid . (string) $amt . $this->merchantKey, true));
-
-        return hash_equals($expected, $signature);
-    }
-
-    /**
      * 서버 승인 API 호출 (2단계 인증)
      *
      * @param string $nextAppUrl  나이스페이먼츠가 전달한 승인 URL
@@ -159,7 +147,7 @@ class NicePaymentsApiService
 
         $result = $response->json() ?? [];
 
-        if (! in_array($result['ResultCode'] ?? '', ['2001', '2211'], true)) {
+        if (! \in_array($result['ResultCode'] ?? '', ['2001', '2211'], true)) {
             Log::error('NicePayments cancel failed', [
                 'result_code' => $result['ResultCode'] ?? 'UNKNOWN',
                 'result_msg' => $result['ResultMsg'] ?? '',
