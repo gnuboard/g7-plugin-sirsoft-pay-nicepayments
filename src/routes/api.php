@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use Plugins\Sirsoft\Pay\Nicepayments\Controllers\AdminTransactionController;
 use Plugins\Sirsoft\Pay\Nicepayments\Controllers\AdminVbankRefundController;
+use Plugins\Sirsoft\Pay\Nicepayments\Controllers\UserReceiptController;
 
 /*
 |--------------------------------------------------------------------------
@@ -13,6 +14,11 @@ use Plugins\Sirsoft\Pay\Nicepayments\Controllers\AdminVbankRefundController;
 | 미들웨어: api (PluginRouteServiceProvider 자동 적용)
 |
 */
+
+Route::middleware(['auth:sanctum'])->group(function () {
+    Route::get('/user/orders/{orderNumber}/receipt', [UserReceiptController::class, 'show'])
+        ->name('user.orders.receipt');
+});
 
 Route::prefix('admin')->name('admin.')->middleware(['auth:sanctum', 'admin'])->group(function () {
     // TID 단건 거래 조회

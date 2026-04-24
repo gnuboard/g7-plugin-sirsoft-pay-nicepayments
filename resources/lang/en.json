@@ -42,6 +42,11 @@
         "pay_status_cancelled": "Cancelled",
         "pay_status_unknown": "Unknown"
     },
+    "user": {
+        "receipt_label": "Receipt",
+        "view_receipt": "View Receipt",
+        "view_cash_receipt": "View Cash Receipt"
+    },
     "messages": {
         "refund": {
             "missing_tid": "Payment transaction ID (TID) is missing.",

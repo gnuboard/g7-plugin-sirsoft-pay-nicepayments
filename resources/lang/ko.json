@@ -42,6 +42,11 @@
         "pay_status_cancelled": "취소",
         "pay_status_unknown": "미확인"
     },
+    "user": {
+        "receipt_label": "영수증",
+        "view_receipt": "영수증 보기",
+        "view_cash_receipt": "현금영수증 조회"
+    },
     "messages": {
         "refund": {
             "missing_tid": "결제 거래번호(TID)가 없습니다.",
