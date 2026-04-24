@@ -126,7 +126,21 @@ class PaymentCallbackController
                 ]));
             }
 
-            // 5단계: 결제 수단별 처리
+            // 5단계: 승인 응답 Signature 검증 — hex(sha256(TID+MID+Amt+MerchantKey))
+            $approvalTid = $pgResponse['TID'] ?? $txTid;
+            $approvalSignature = $pgResponse['Signature'] ?? '';
+            if ($approvalSignature !== '' && ! $this->apiService->verifyApprovalSignature($approvalTid, $amt, $approvalSignature)) {
+                Log::critical('NicePayments: approval response signature mismatch', [
+                    'moid' => $moid,
+                    'tid' => $approvalTid,
+                    'ip' => $request->ip(),
+                ]);
+                $this->apiService->sendNetCancel($netCancelUrl, $txTid, $authToken, $amt);
+
+                return redirect($this->resolveFailUrl(['error' => 'signature_mismatch', 'orderId' => $moid]));
+            }
+
+            // 6단계: 결제 수단별 처리
             $payMethod = $pgResponse['PayMethod'] ?? '';
 
             if ($payMethod === 'VBANK') {
@@ -195,7 +209,7 @@ class PaymentCallbackController
                 'actual' => $e->getActualAmount(),
             ]);
 
-            $this->apiService->sendNetCancel($netCancelUrl, $authToken);
+            $this->apiService->sendNetCancel($netCancelUrl, $txTid, $authToken, $amt);
 
             return redirect($this->resolveFailUrl(['error' => 'amount_mismatch', 'orderId' => $moid]));
 
@@ -205,7 +219,7 @@ class PaymentCallbackController
                 'error' => $e->getMessage(),
             ]);
 
-            $this->apiService->sendNetCancel($netCancelUrl, $authToken);
+            $this->apiService->sendNetCancel($netCancelUrl, $txTid, $authToken, $amt);
 
             return redirect($this->resolveFailUrl([
                 'error' => 'authorize_failed',

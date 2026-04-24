@@ -40,16 +40,23 @@ class NicePaymentsApiService
     }
 
     /**
-     * 콜백 서명 검증 (MerchantKey 없는 1차 검증)
-     *
-     * @param string $authToken 인증 토큰
-     * @param string $mid       가맹점 MID
-     * @param int    $amt       결제 금액
-     * @param string $signature 나이스페이먼츠가 전달한 서명
+     * 콜백 서명 검증: hex(sha256(AuthToken + MID + Amt + MerchantKey))
      */
     public function verifyCallbackSignature(string $authToken, string $mid, int $amt, string $signature): bool
     {
         $expected = bin2hex(hash('sha256', $authToken . $mid . (string) $amt . $this->merchantKey, true));
+
+        return hash_equals($expected, $signature);
+    }
+
+    /**
+     * 승인 응답 서명 검증: hex(sha256(TID + MID + Amt + MerchantKey))
+     *
+     * 나이스페이먼츠가 최종 승인 응답에 포함하는 Signature 검증 (위변조 감지)
+     */
+    public function verifyApprovalSignature(string $tid, int $amt, string $signature): bool
+    {
+        $expected = bin2hex(hash('sha256', $tid . $this->mid . (string) $amt . $this->merchantKey, true));
 
         return hash_equals($expected, $signature);
     }
@@ -173,9 +180,11 @@ class NicePaymentsApiService
      * 망취소 요청 (서버 승인 중 예외 발생 시 결제 원천 취소)
      *
      * @param string $netCancelUrl 나이스페이먼츠가 전달한 망취소 URL
+     * @param string $txTid        임시 거래번호 (TxTid)
      * @param string $authToken    인증 토큰
+     * @param int    $amt          결제 금액
      */
-    public function sendNetCancel(string $netCancelUrl, string $authToken): void
+    public function sendNetCancel(string $netCancelUrl, string $txTid, string $authToken, int $amt): void
     {
         if (! $this->isNicePayUrl($netCancelUrl)) {
             Log::warning('NicePayments: invalid net cancel URL skipped', ['url' => parse_url($netCancelUrl, PHP_URL_HOST)]);
@@ -184,10 +193,18 @@ class NicePaymentsApiService
         }
 
         try {
+            $ediDate = $this->computeEdiDate();
+            $signData = bin2hex(hash('sha256', $authToken . $this->mid . (string) $amt . $ediDate . $this->merchantKey, true));
+
             Http::timeout(10)->asForm()->post($netCancelUrl, [
+                'TID' => $txTid,
                 'NetCancel' => 1,
                 'AuthToken' => $authToken,
                 'MID' => $this->mid,
+                'Amt' => $amt,
+                'EdiDate' => $ediDate,
+                'SignData' => $signData,
+                'CharSet' => 'utf-8',
             ]);
         } catch (\Throwable $e) {
             Log::error('NicePayments net cancel failed', ['error' => $e->getMessage()]);
