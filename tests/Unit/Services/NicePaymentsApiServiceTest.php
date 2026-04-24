@@ -173,7 +173,7 @@ class NicePaymentsApiServiceTest extends PluginTestCase
         ]);
 
         // 예외 없이 실행되어야 함
-        $service->sendNetCancel($netCancelUrl, 'AUTH_TOKEN_TEST');
+        $service->sendNetCancel($netCancelUrl, 'TX_TID_TEST', 'AUTH_TOKEN_TEST', 50000);
 
         Http::assertSent(function ($request) use ($netCancelUrl) {
             return $request->url() === $netCancelUrl
@@ -191,7 +191,7 @@ class NicePaymentsApiServiceTest extends PluginTestCase
         ]);
 
         // 예외 없이 실행되어야 함 (망취소 실패는 무시)
-        $service->sendNetCancel('https://pay.nicepay.co.kr/v1/netcancel', 'TOKEN');
+        $service->sendNetCancel('https://pay.nicepay.co.kr/v1/netcancel', 'TX_TID', 'TOKEN', 50000);
 
         $this->assertTrue(true);
     }
