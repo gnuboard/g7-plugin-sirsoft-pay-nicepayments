@@ -38,6 +38,7 @@ class VbankNotifyRequest extends FormRequest
             'VbankAuthDate' => ['nullable', 'string'],
             'VbankNum' => ['nullable', 'string'],
             'VbankName' => ['nullable', 'string'],
+            'Signature' => ['nullable', 'string'],
         ];
     }
 }

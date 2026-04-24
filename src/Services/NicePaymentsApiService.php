@@ -50,6 +50,16 @@ class NicePaymentsApiService
     }
 
     /**
+     * 가상계좌 입금 통보 서명 검증: hex(sha256(TID + MID + Amt + MerchantKey))
+     */
+    public function verifyVbankNotifySignature(string $tid, int $amt, string $signature): bool
+    {
+        $expected = bin2hex(hash('sha256', $tid . $this->mid . (string) $amt . $this->merchantKey, true));
+
+        return hash_equals($expected, $signature);
+    }
+
+    /**
      * 승인 응답 서명 검증: hex(sha256(TID + MID + Amt + MerchantKey))
      *
      * 나이스페이먼츠가 최종 승인 응답에 포함하는 Signature 검증 (위변조 감지)
@@ -137,7 +147,7 @@ class NicePaymentsApiService
 
         $result = $response->json() ?? [];
 
-        if (($result['ResultCode'] ?? '') !== '2001') {
+        if (! in_array($result['ResultCode'] ?? '', ['2001', '2211'], true)) {
             Log::error('NicePayments cancel failed', [
                 'result_code' => $result['ResultCode'] ?? 'UNKNOWN',
                 'result_msg' => $result['ResultMsg'] ?? '',

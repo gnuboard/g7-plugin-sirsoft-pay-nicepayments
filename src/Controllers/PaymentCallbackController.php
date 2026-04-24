@@ -289,6 +289,18 @@ class PaymentCallbackController
         $moid = $validated['Moid'];
         $amt = (int) $validated['Amt'];
         $vbankResult = (string) $validated['VbankResult'];
+        $signature = $validated['Signature'] ?? null;
+
+        // 서명 검증 (입금 통보 위변조 감지)
+        if ($signature !== null && ! $this->apiService->verifyVbankNotifySignature($tid, $amt, $signature)) {
+            Log::critical('NicePayments: vbank notify signature mismatch', [
+                'tid' => $tid,
+                'moid' => $moid,
+                'ip' => $request->ip(),
+            ]);
+
+            return response('FAIL', 200)->header('Content-Type', 'text/plain');
+        }
 
         if ($vbankResult !== '1') {
             Log::warning('NicePayments: vbank deposit cancelled', ['tid' => $tid, 'moid' => $moid]);
