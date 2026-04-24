@@ -125,11 +125,14 @@ class NicePaymentsApiService
         int $cancelAmt,
         string $cancelMsg,
         int $partialCancelCode = 0,
+        ?string $refundAcctNo = null,
+        ?string $refundBankCd = null,
+        ?string $refundAcctNm = null,
     ): array {
         $ediDate = $this->computeEdiDate();
         $signData = bin2hex(hash('sha256', $this->mid . (string) $cancelAmt . $ediDate . $this->merchantKey, true));
 
-        $response = Http::timeout(15)->asForm()->post(self::CANCEL_URL, [
+        $params = [
             'TID' => $tid,
             'MID' => $this->mid,
             'Moid' => $moid,
@@ -139,7 +142,16 @@ class NicePaymentsApiService
             'EdiDate' => $ediDate,
             'SignData' => $signData,
             'CharSet' => 'utf-8',
-        ]);
+        ];
+
+        // 가상계좌 입금 완료 건 환불 시 환불 계좌 정보 필수
+        if ($refundAcctNo !== null) {
+            $params['RefundAcctNo'] = $refundAcctNo;
+            $params['RefundBankCd'] = $refundBankCd ?? '';
+            $params['RefundAcctNm'] = $refundAcctNm ?? '';
+        }
+
+        $response = Http::timeout(15)->asForm()->post(self::CANCEL_URL, $params);
 
         if ($response->failed()) {
             throw new \Exception('NicePayments cancel API error: HTTP ' . $response->status());
