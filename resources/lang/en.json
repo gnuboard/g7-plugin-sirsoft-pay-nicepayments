@@ -33,7 +33,14 @@
         "result_amount": "Amount",
         "result_status": "Payment Status",
         "result_method": "Payment Method",
-        "result_result_code": "Result Code"
+        "result_result_code": "Result Code",
+        "order_verify_title": "NicePayments Verification",
+        "order_verify_description": "Query real-time payment status from NicePayments server.",
+        "order_verify_button": "Verify",
+        "order_verify_error": "Query Failed",
+        "pay_status_approved": "Approved",
+        "pay_status_cancelled": "Cancelled",
+        "pay_status_unknown": "Unknown"
     },
     "messages": {
         "refund": {

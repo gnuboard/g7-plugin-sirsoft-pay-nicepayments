@@ -181,7 +181,8 @@ class NicePaymentsApiService
     public function queryTransaction(string $tid): array
     {
         $ediDate = $this->computeEdiDate();
-        $signData = bin2hex(hash('sha256', $this->mid . $tid . $ediDate . $this->merchantKey, true));
+        // SignData: hex(sha256(TID + MID + EdiDate + MerchantKey)) — TID 먼저
+        $signData = bin2hex(hash('sha256', $tid . $this->mid . $ediDate . $this->merchantKey, true));
 
         $response = Http::timeout(15)->asForm()->post(self::QUERY_URL, [
             'TID' => $tid,
@@ -189,6 +190,7 @@ class NicePaymentsApiService
             'EdiDate' => $ediDate,
             'SignData' => $signData,
             'CharSet' => 'utf-8',
+            'EdiType' => 'JSON',
         ]);
 
         if ($response->failed()) {

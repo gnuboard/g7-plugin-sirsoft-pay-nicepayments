@@ -221,7 +221,8 @@ class NicePaymentsApiServiceTest extends PluginTestCase
                 && $request['MID'] === self::TEST_MID
                 && isset($request['EdiDate'])
                 && isset($request['SignData'])
-                && $request['CharSet'] === 'utf-8';
+                && $request['CharSet'] === 'utf-8'
+                && $request['EdiType'] === 'JSON';
         });
     }
 
