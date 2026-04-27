@@ -145,6 +145,8 @@ class PaymentCallbackController
 
             // 5단계: 결제 수단별 처리
             $payMethod = $pgResponse['PayMethod'] ?? '';
+            $isEscrow = ($pgResponse['EscrowYN'] ?? 'N') === 'Y'
+                || $this->apiService->isEscrowEnabled();
 
             if ($payMethod === 'VBANK') {
                 // 가상계좌: 계좌 발급 완료 → 입금 대기 상태로 전환
@@ -162,6 +164,7 @@ class PaymentCallbackController
                     $payment->vbank_number = $pgResponse['VbankNum'] ?? null;
                     $payment->vbank_due_at = $vbankDueAt;
                     $payment->vbank_issued_at = now();
+                    $payment->is_escrow = $isEscrow;
                     $payment->payment_meta = [
                         'result_code' => $resultCode,
                         'pay_method' => $payMethod,
@@ -191,6 +194,7 @@ class PaymentCallbackController
                     'card_name' => $pgResponse['IssuCardName'] ?? $pgResponse['CardName'] ?? null,
                     'card_installment_months' => (int) ($pgResponse['CardQuota'] ?? 0),
                     'is_interest_free' => false,
+                    'is_escrow' => $isEscrow,
                     'embedded_pg_provider' => null,
                     'receipt_url' => $pgResponse['ReceiptUrl'] ?? null,
                     'payment_meta' => [

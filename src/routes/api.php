@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Plugins\Sirsoft\Pay\Nicepayments\Controllers\AdminEscrowController;
 use Plugins\Sirsoft\Pay\Nicepayments\Controllers\AdminTransactionController;
 use Plugins\Sirsoft\Pay\Nicepayments\Controllers\AdminVbankRefundController;
 use Plugins\Sirsoft\Pay\Nicepayments\Controllers\UserReceiptController;
@@ -38,4 +39,8 @@ Route::prefix('admin')->name('admin.')->middleware(['auth:sanctum', 'admin'])->g
     // 가상계좌 입금 완료 건 환불 (환불 계좌 정보 필요)
     Route::post('/vbank-refund', [AdminVbankRefundController::class, 'refund'])
         ->name('vbank.refund');
+
+    // 에스크로 배송 등록
+    Route::post('/escrow/register-delivery', [AdminEscrowController::class, 'registerDelivery'])
+        ->name('escrow.register-delivery');
 });

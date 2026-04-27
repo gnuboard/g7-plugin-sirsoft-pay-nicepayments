@@ -760,6 +760,64 @@
                         ]
                     },
                     {
+                        "id": "escrow_section",
+                        "type": "basic",
+                        "name": "Div",
+                        "props": {
+                            "className": "mt-6 bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700"
+                        },
+                        "children": [
+                            {
+                                "type": "basic",
+                                "name": "Div",
+                                "props": {
+                                    "className": "p-6"
+                                },
+                                "children": [
+                                    {
+                                        "id": "field_use_escrow",
+                                        "type": "basic",
+                                        "name": "Div",
+                                        "props": {
+                                            "className": "flex items-center justify-between"
+                                        },
+                                        "children": [
+                                            {
+                                                "type": "basic",
+                                                "name": "Div",
+                                                "children": [
+                                                    {
+                                                        "type": "basic",
+                                                        "name": "Label",
+                                                        "props": {
+                                                            "className": "block text-sm font-medium text-gray-700 dark:text-gray-300"
+                                                        },
+                                                        "text": "$t:sirsoft-pay-nicepayments.settings.use_escrow"
+                                                    },
+                                                    {
+                                                        "type": "basic",
+                                                        "name": "P",
+                                                        "props": {
+                                                            "className": "mt-1 text-xs text-gray-500 dark:text-gray-400"
+                                                        },
+                                                        "text": "$t:sirsoft-pay-nicepayments.settings.use_escrow_hint"
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "type": "composite",
+                                                "name": "Toggle",
+                                                "props": {
+                                                    "name": "use_escrow"
+                                                }
+                                            }
+                                        ]
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    {
                         "id": "transaction_query_section",
                         "type": "basic",
                         "name": "Div",
@@ -1198,6 +1256,12 @@
             "default": "/shop/checkout",
             "label": "$t:sirsoft-pay-nicepayments.settings.redirect_fail_url",
             "hint": "$t:sirsoft-pay-nicepayments.settings.redirect_fail_url_hint"
+        },
+        "use_escrow": {
+            "type": "boolean",
+            "default": false,
+            "label": "$t:sirsoft-pay-nicepayments.settings.use_escrow",
+            "hint": "$t:sirsoft-pay-nicepayments.settings.use_escrow_hint"
         }
     }
 }

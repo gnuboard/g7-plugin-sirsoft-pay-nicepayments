@@ -86,6 +86,15 @@ class Plugin extends AbstractPlugin
                     'en' => 'Supports relative paths or full URLs. Error details are appended as query parameters.',
                 ],
             ],
+            'use_escrow' => [
+                'type' => 'boolean',
+                'default' => false,
+                'label' => ['ko' => '에스크로 결제 사용', 'en' => 'Enable Escrow Payment'],
+                'hint' => [
+                    'ko' => '실물 상품 판매 시 구매자 보호를 위한 에스크로 결제를 활성화합니다. 에스크로 결제 후 배송 등록이 필요합니다.',
+                    'en' => 'Enables escrow payment for buyer protection when selling physical goods. Delivery registration is required after escrow payment.',
+                ],
+            ],
         ];
     }
 
@@ -99,6 +108,7 @@ class Plugin extends AbstractPlugin
             'live_merchant_key' => '',
             'redirect_success_url' => '/shop/orders/{orderId}/complete',
             'redirect_fail_url' => '/shop/checkout',
+            'use_escrow' => false,
         ];
     }
 

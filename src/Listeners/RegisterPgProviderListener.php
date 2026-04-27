@@ -56,6 +56,7 @@ class RegisterPgProviderListener implements HookListenerInterface
             'sdk_url' => 'https://web.nicepay.co.kr/v3/webstd/js/nicepay-3.0.js',
             'callback_url' => '/plugins/sirsoft-pay-nicepayments/payment/callback',
             'sign_data_url' => '/plugins/sirsoft-pay-nicepayments/payment/sign-data',
+            'useEscrow' => (bool) ($settings['use_escrow'] ?? false),
         ]);
     }
 

@@ -14,6 +14,8 @@ class NicePaymentsApiService
 
     private const QUERY_URL = 'https://pg-api.nicepay.co.kr/webapi/trade_status.jsp';
 
+    private const DELIVERY_REG_URL = 'https://pg-api.nicepay.co.kr/webapi/delivery_reg.jsp';
+
     private const PLUGIN_IDENTIFIER = 'sirsoft-pay-nicepayments';
 
     private bool $isTest;
@@ -21,6 +23,8 @@ class NicePaymentsApiService
     private string $mid;
 
     private string $merchantKey;
+
+    private bool $useEscrow;
 
     public function __construct(PluginSettingsService $pluginSettingsService)
     {
@@ -32,11 +36,73 @@ class NicePaymentsApiService
         $this->merchantKey = $this->isTest
             ? ($settings['test_merchant_key'] ?? '')
             : ($settings['live_merchant_key'] ?? '');
+        $this->useEscrow = (bool) ($settings['use_escrow'] ?? false);
     }
 
     public function getMid(): string
     {
         return $this->mid;
+    }
+
+    public function isEscrowEnabled(): bool
+    {
+        return $this->useEscrow;
+    }
+
+    /**
+     * 에스크로 배송 등록 API 호출
+     *
+     * SignData: hex(sha256(TID + MID + EdiDate + MerchantKey))
+     * 응답 ResultCode = '2000' 이면 성공
+     *
+     * @throws \Exception API 호출 실패 또는 PG 오류 시
+     */
+    public function registerEscrowDelivery(
+        string $tid,
+        string $deliveryName,
+        string $trackingNumber,
+        string $senderName,
+        string $senderPhone,
+        string $senderAddress,
+        string $receiverName,
+        string $receiverPhone,
+        string $receiverAddress,
+    ): array {
+        $ediDate = $this->computeEdiDate();
+        $signData = bin2hex(hash('sha256', $tid . $this->mid . $ediDate . $this->merchantKey, true));
+
+        $response = Http::timeout(15)->asForm()->post(self::DELIVERY_REG_URL, [
+            'TID' => $tid,
+            'MID' => $this->mid,
+            'EdiDate' => $ediDate,
+            'SignData' => $signData,
+            'CharSet' => 'utf-8',
+            'DeliveryName' => $deliveryName,
+            'DeliveryNo' => $trackingNumber,
+            'SenderName' => $senderName,
+            'SenderTel' => $senderPhone,
+            'SenderAddress' => $senderAddress,
+            'ReceiverName' => $receiverName,
+            'ReceiverTel' => $receiverPhone,
+            'ReceiverAddress' => $receiverAddress,
+        ]);
+
+        if ($response->failed()) {
+            throw new \Exception('NicePayments delivery reg API error: HTTP ' . $response->status());
+        }
+
+        $result = $response->json() ?? [];
+
+        if (($result['ResultCode'] ?? '') !== '2000') {
+            Log::error('NicePayments escrow delivery reg failed', [
+                'result_code' => $result['ResultCode'] ?? 'UNKNOWN',
+                'result_msg' => $result['ResultMsg'] ?? '',
+                'tid' => $tid,
+            ]);
+            throw new \Exception($result['ResultMsg'] ?? 'NicePayments escrow delivery registration failed');
+        }
+
+        return $result;
     }
 
     /**

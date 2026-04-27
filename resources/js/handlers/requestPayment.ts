@@ -50,6 +50,7 @@ interface ClientConfig {
     mid: string;
     sdk_url: string;
     sign_data_url: string;
+    useEscrow?: boolean;
 }
 
 interface SignDataResponse {
@@ -251,6 +252,12 @@ export async function requestPaymentHandler(action: PaymentAction, _context?: un
         // 휴대폰결제: 상품 유형 필수 (0:디지털컨텐츠, 1:실물)
         if (payMethod === 'CELLPHONE') {
             formFields.GoodsCl = pgPaymentData.goods_cl ?? '1';
+        }
+
+        // 에스크로 결제: 실물 상품 전용 (GoodsCl=1 필수)
+        if (config.useEscrow) {
+            formFields.EscrowYN = 'Y';
+            formFields.GoodsCl = '1';
         }
 
         // 4-2. 과세/비과세 금액 조회 (optional — 실패해도 결제 진행)
