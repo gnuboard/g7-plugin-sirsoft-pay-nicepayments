@@ -92,6 +92,8 @@ function createPaymentForm(action: string, fields: Record<string, string>): HTML
     form.id = 'nicepayForm';
     form.method = 'post';
     form.action = action;
+    // CharSet 필드와 일치 — 모바일은 form.acceptCharset 으로 charset 결정
+    form.acceptCharset = 'utf-8';
 
     for (const [name, value] of Object.entries(fields)) {
         const input = document.createElement('input');
@@ -107,6 +109,37 @@ function createPaymentForm(action: string, fields: Record<string, string>): HTML
 
 const CALLBACK_PATH = '/plugins/sirsoft-pay-nicepayments/payment/callback';
 
+// 나이스페이 v3 모바일 결제창 endpoint — 폼을 직접 POST 하면 NicePay 모바일 페이지로 전체 redirect.
+// PC 와 달리 SDK 불필요. 결제 완료 후 ReturnURL 로 redirect.
+const NICEPAY_MOBILE_ENDPOINT = 'https://web.nicepay.co.kr/v3/v3Payment.jsp';
+
+/**
+ * 모바일 환경 판별.
+ *
+ * NicePay 의 PC SDK (`goPay`) 는 모바일 자동 감지를 하지 않으므로
+ * UA 기반 분기가 필요. iOS/Android/Windows Phone 및 주요 in-app 브라우저 (KakaoTalk
+ * NaverApp, Line, Instagram 등) 모두 모바일로 처리.
+ *
+ * 한 가지 더 — 화면 크기 보조 검사: 일부 데스크탑 사용자가 모바일 시뮬레이션을
+ * 켜는 경우와 일부 태블릿 UA 가 모호한 경우를 함께 처리.
+ */
+function isMobileDevice(): boolean {
+    if (typeof navigator === 'undefined') return false;
+    const ua = (navigator.userAgent || '').toLowerCase();
+
+    // 명시적 모바일 UA
+    const mobileUA = /android|iphone|ipad|ipod|windows phone|iemobile|blackberry|opera mini|mobile|kakaotalk|naver|line|instagram|fban|fbav/;
+    if (mobileUA.test(ua)) return true;
+
+    // 터치 + 좁은 화면 보조 검사 (iPadOS 가 데스크탑 UA 를 보내는 경우 등)
+    const touchPoints = (navigator as Navigator & { maxTouchPoints?: number }).maxTouchPoints ?? 0;
+    if (touchPoints > 1 && Math.min(window.innerWidth, window.innerHeight) <= 1024) {
+        return true;
+    }
+
+    return false;
+}
+
 /**
  * 나이스페이먼츠 결제창 호출 핸들러 (나이스페이 구형 API, goPay 방식)
  *
@@ -116,10 +149,15 @@ const CALLBACK_PATH = '/plugins/sirsoft-pay-nicepayments/payment/callback';
  *
  * 호출 순서:
  *   1. Client Config API 호출 → MID, SDK URL, SignData URL 획득
- *   2. nicepay-pgweb.js SDK 동적 로드
+ *   2. 환경 분기: PC 면 SDK 동적 로드 / 모바일 은 SDK 생략
  *   3. 서버에서 EdiDate + SignData 생성
- *   4. 결제 폼 생성 후 goPay(form) 호출 (PC) / 직접 폼 제출 (모바일)
+ *   4. 결제 폼 생성:
+ *      - PC: 폼 action=ReturnURL → goPay(form) 으로 iframe 팝업
+ *      - 모바일: 폼 action=https://web.nicepay.co.kr/v3/v3Payment.jsp → 직접 submit (전체 페이지 redirect)
  *   5. 결제 완료 시 나이스페이먼츠가 ReturnURL(POST)로 인증값 전달
+ *
+ * NicePay 의 PC SDK 는 모바일 자동 감지를 하지 않으므로 UA 기반 분기가 필수.
+ * 잘못 분기하면 모바일에서도 PC 팝업이 떠 사용성이 매우 나빠짐.
  */
 export async function requestPaymentHandler(action: PaymentAction, _context?: unknown): Promise<void> {
     const { pgPaymentData, paymentMethod: paramPaymentMethod } = action.params ?? {};
@@ -144,21 +182,38 @@ export async function requestPaymentHandler(action: PaymentAction, _context?: un
         }
 
         const config = configJson.data as ClientConfig;
+        const isMobile = isMobileDevice();
 
-        // 2. nicepay-pgweb.js SDK 동적 로드
-        await loadScript(config.sdk_url);
+        // 2. PC 인 경우에만 SDK 로드 (모바일 은 직접 form submit 으로 NicePay 모바일 페이지로 이동)
+        if (!isMobile) {
+            await loadScript(config.sdk_url);
 
-        if (typeof window.goPay !== 'function') {
-            G7Core?.toast?.error?.('나이스페이먼츠 SDK를 불러올 수 없습니다. 잠시 후 다시 시도해주세요.');
-            G7Core?.state?.setLocal?.({ isSubmittingOrder: false });
-            return;
+            if (typeof window.goPay !== 'function') {
+                G7Core?.toast?.error?.('나이스페이먼츠 SDK를 불러올 수 없습니다. 잠시 후 다시 시도해주세요.');
+                G7Core?.state?.setLocal?.({ isSubmittingOrder: false });
+                return;
+            }
         }
 
         // 3. 서버에서 EdiDate + SignData 생성
+        //    sign-data 엔드포인트는 'auth' 미들웨어가 걸려있어 Sanctum Bearer 토큰
+        //    또는 세션 쿠키 중 하나가 필요. SPA 모드에서 토큰만 있는 경우를 대비해
+        //    localStorage 의 auth_token 을 Authorization 헤더로 명시 전달하고,
+        //    credentials:include 로 세션 쿠키도 함께 전송 (둘 중 하나만 있어도 통과).
         const signDataUrl = window.location.origin + config.sign_data_url;
+        const authToken = (typeof localStorage !== 'undefined') ? localStorage.getItem('auth_token') : null;
+        const signDataHeaders: Record<string, string> = {
+            'Content-Type': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest',
+            'Accept': 'application/json',
+        };
+        if (authToken) {
+            signDataHeaders['Authorization'] = `Bearer ${authToken}`;
+        }
         const signDataRes = await fetch(signDataUrl, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+            credentials: 'include',
+            headers: signDataHeaders,
             body: JSON.stringify({ amt: pgPaymentData.amount, moid: pgPaymentData.order_number }),
         });
 
@@ -218,6 +273,17 @@ export async function requestPaymentHandler(action: PaymentAction, _context?: un
 
         const form = createPaymentForm(callbackUrl, formFields);
 
+        if (isMobile) {
+            // 모바일: form action 을 NicePay 모바일 endpoint 로 변경하고 직접 submit.
+            // 결제 완료 후 NicePay 가 ReturnURL (formFields.ReturnURL) 로 redirect.
+            form.action = NICEPAY_MOBILE_ENDPOINT;
+            form.submit();
+            // 페이지 자체가 redirect 되므로 정리 로직 불필요. submit 후 이 함수의 후속 코드는 실행되지 않음.
+            return;
+        }
+
+        // 이하 PC 전용 — iframe 팝업 + nicepaySubmit / nicepayClose 콜백 처리
+
         // 5. 나이스페이 전역 콜백 정의
         window.nicepaySubmit = () => {
             form.submit();
@@ -250,7 +316,7 @@ export async function requestPaymentHandler(action: PaymentAction, _context?: un
         window.history.pushState({ nicepayOpen: true }, '');
         window.addEventListener('popstate', handlePopState);
 
-        // 6. 결제창 호출 (SDK가 PC/모바일 자동 감지 처리)
+        // 6. PC 결제창 호출 (iframe 팝업)
         window.goPay(form);
 
     } catch (error: unknown) {
