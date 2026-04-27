@@ -291,31 +291,49 @@ class PaymentCallbackController
      * 가상계좌 입금 통보 처리
      *
      * POST /plugins/sirsoft-pay-nicepayments/payment/vbank-notify
-     * (나이스페이먼츠 서버 → 우리 서버, CSRF 제외)
+     * 공식 매뉴얼: https://developers.nicepay.co.kr/manual-noti.php
+     *
+     * 동작:
+     *   - ResultCode === '4110' 입금완료 통보만 결제완료 처리
+     *   - 그 외 ResultCode (계좌발급, 입금취소 등) 는 로깅만 하고 OK 응답
+     *   - 어떤 결과든 200 + 정확히 "OK" (text/plain) 를 돌려줘야 NicePay 가 재시도하지 않음
+     *   - 한글 인코딩(EUC-KR) 은 VbankNotifyRequest::prepareForValidation 에서 UTF-8 로 변환됨
+     *
+     * 공식 spec 에 입금통보 Signature 가 없어 위변조 검증은 하지 않으며, 대신:
+     *   - 발송 IP 화이트리스트 (VbankNotifyRequest::authorize)
+     *   - TID/MOID/Amt 가 우리 DB 의 임시 발급 정보와 일치하는지 비교
+     *   - 동일 TID 중복 처리 방지 (행 잠금)
+     *   세 단계로 위변조/재처리 방어.
      */
     public function vbankNotify(VbankNotifyRequest $request): Response
     {
         $validated = $request->validated();
 
-        $tid = $validated['TID'];
-        $moid = $validated['Moid'];
+        $tid = (string) $validated['TID'];
+        $moid = (string) $validated['MOID'];
         $amt = (int) $validated['Amt'];
-        $vbankResult = (string) $validated['VbankResult'];
-        $signature = $validated['Signature'] ?? null;
+        $resultCode = (string) $validated['ResultCode'];
 
-        // 서명 검증 (입금 통보 위변조 감지)
-        if ($signature !== null && ! $this->apiService->verifyVbankNotifySignature($tid, $amt, $signature)) {
-            Log::critical('NicePayments: vbank notify signature mismatch', [
-                'tid' => $tid,
-                'moid' => $moid,
-                'ip' => $request->ip(),
-            ]);
+        // 입금완료 통보 (4110) 만 결제완료 처리.
+        // 4100/계좌발급은 authCallback 에서 이미 처리됐고, 그 외 코드는 입금취소/오류 등.
+        $isDeposited = $resultCode === '4110';
 
-            return response('FAIL', 200)->header('Content-Type', 'text/plain');
-        }
+        if (! $isDeposited) {
+            // 입금취소(StateCd=1/2 또는 CancelDate 존재) 인지 구별 — 로그 분리
+            $isCancellation = ! empty($validated['CancelDate'])
+                || in_array((string) ($validated['StateCd'] ?? ''), ['1', '2'], true);
 
-        if ($vbankResult !== '1') {
-            Log::warning('NicePayments: vbank deposit cancelled', ['tid' => $tid, 'moid' => $moid]);
+            Log::info(
+                'NicePayments: vbank notify ' . ($isCancellation ? 'cancellation' : 'non-deposit'),
+                [
+                    'tid' => $tid,
+                    'moid' => $moid,
+                    'result_code' => $resultCode,
+                    'state_cd' => $validated['StateCd'] ?? null,
+                    'cancel_date' => $validated['CancelDate'] ?? null,
+                    'result_msg' => $validated['ResultMsg'] ?? null,
+                ]
+            );
 
             return response('OK', 200)->header('Content-Type', 'text/plain');
         }
@@ -344,10 +362,14 @@ class PaymentCallbackController
                 $this->orderService->completePayment($order, [
                     'transaction_id' => $tid,
                     'payment_meta' => [
-                        'result_code' => '4100',
-                        'vbank_auth_date' => $validated['VbankAuthDate'] ?? null,
+                        'result_code' => '4110',
+                        'auth_date' => $validated['AuthDate'] ?? null,
+                        'auth_code' => $validated['AuthCode'] ?? null,
                         'vbank_num' => $validated['VbankNum'] ?? null,
                         'vbank_name' => $validated['VbankName'] ?? null,
+                        'vbank_input_name' => $validated['VbankInputName'] ?? null,
+                        'fn_cd' => $validated['FnCd'] ?? null,
+                        'fn_name' => $validated['FnName'] ?? null,
                         'pg_raw_response' => $this->sanitizePgResponse($validated),
                     ],
                 ], $amt);
@@ -356,7 +378,13 @@ class PaymentCallbackController
             if ($alreadyProcessed) {
                 Log::info('NicePayments: vbank notify - already processed', ['tid' => $tid, 'moid' => $moid]);
             } else {
-                Log::info('NicePayments: vbank deposit confirmed', ['tid' => $tid, 'moid' => $moid, 'amt' => $amt]);
+                Log::info('NicePayments: vbank deposit confirmed', [
+                    'tid' => $tid,
+                    'moid' => $moid,
+                    'amt' => $amt,
+                    'depositor' => $validated['VbankInputName'] ?? null,
+                    'auth_date' => $validated['AuthDate'] ?? null,
+                ]);
             }
 
             return response('OK', 200)->header('Content-Type', 'text/plain');
