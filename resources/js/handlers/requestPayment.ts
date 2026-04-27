@@ -274,9 +274,19 @@ export async function requestPaymentHandler(action: PaymentAction, _context?: un
         const form = createPaymentForm(callbackUrl, formFields);
 
         if (isMobile) {
-            // 모바일: form action 을 NicePay 모바일 endpoint 로 변경하고 직접 submit.
-            // 결제 완료 후 NicePay 가 ReturnURL (formFields.ReturnURL) 로 redirect.
+            // 모바일 결제창 호출:
+            //   - form.action = NicePay 모바일 endpoint
+            //   - acceptCharset = 'euc-kr' : NicePay v3 mobile 은 EUC-KR 로 form 데이터를 받음
+            //     (NicePay 공식 샘플과 동일). 브라우저가 자동으로 UTF-8 → EUC-KR 변환.
+            //   - CharSet 입력값도 'euc-kr' 로 일치 — NicePay 가 같은 인코딩으로 디코딩하도록.
+            //     (utf-8 그대로 두면 GoodsName/BuyerName 한글이 mojibake "遺?瑜?" 로 깨짐)
+            //   결제 완료 후 NicePay 가 ReturnURL 로 redirect.
             form.action = NICEPAY_MOBILE_ENDPOINT;
+            form.acceptCharset = 'euc-kr';
+            const charsetInput = form.querySelector('input[name="CharSet"]') as HTMLInputElement | null;
+            if (charsetInput) {
+                charsetInput.value = 'euc-kr';
+            }
             form.submit();
             // 페이지 자체가 redirect 되므로 정리 로직 불필요. submit 후 이 함수의 후속 코드는 실행되지 않음.
             return;
