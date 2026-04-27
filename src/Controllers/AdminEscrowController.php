@@ -8,6 +8,7 @@ use App\Helpers\ResponseHelper;
 use App\Http\Controllers\Api\Base\AdminBaseController;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Plugins\Sirsoft\Pay\Nicepayments\Services\NicePaymentsApiService;
 
@@ -17,6 +18,30 @@ class AdminEscrowController extends AdminBaseController
         private readonly NicePaymentsApiService $apiService,
     ) {
         parent::__construct();
+    }
+
+    /**
+     * 주문의 에스크로 결제 목록 조회
+     *
+     * GET /api/plugins/sirsoft-pay-nicepayments/admin/orders/{orderNumber}/escrow-payments
+     */
+    public function getEscrowPayments(string $orderNumber): JsonResponse
+    {
+        $payments = DB::table('ecommerce_order_payments')
+            ->join('ecommerce_orders', 'ecommerce_orders.id', '=', 'ecommerce_order_payments.order_id')
+            ->where('ecommerce_orders.order_number', $orderNumber)
+            ->where('ecommerce_order_payments.pg_provider', 'nicepayments')
+            ->where('ecommerce_order_payments.is_escrow', 1)
+            ->get(['ecommerce_order_payments.id', 'ecommerce_order_payments.transaction_id', 'ecommerce_order_payments.payment_method', 'ecommerce_order_payments.payment_status']);
+
+        return ResponseHelper::success('messages.success', [
+            'escrow_payments' => $payments->map(fn ($p) => [
+                'id' => $p->id,
+                'transaction_id' => $p->transaction_id,
+                'payment_method' => $p->payment_method,
+                'payment_status' => $p->payment_status,
+            ])->values()->all(),
+        ]);
     }
 
     /**

@@ -47,6 +47,8 @@
         "pay_status_approved": "Approved",
         "pay_status_cancelled": "Cancelled",
         "pay_status_unknown": "Unknown",
+        "escrow_badge": "Escrow",
+        "escrow_payment_notice": "This is an escrow payment. Buyer confirmation is required after delivery registration.",
         "escrow_delivery_title": "Escrow Delivery Registration",
         "escrow_delivery_company": "Courier Company",
         "escrow_delivery_company_placeholder": "e.g. FedEx",

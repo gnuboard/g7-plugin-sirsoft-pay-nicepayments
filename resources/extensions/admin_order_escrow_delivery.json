@@ -1,6 +1,42 @@
 {
     "target_layout": "admin_ecommerce_order_detail",
+    "data_sources": [
+        {
+            "id": "nicepay_escrow",
+            "type": "api",
+            "endpoint": "/api/plugins/sirsoft-pay-nicepayments/admin/orders/{{route.orderNumber}}/escrow-payments",
+            "method": "GET",
+            "auto_fetch": true,
+            "auth_required": true
+        }
+    ],
     "injections": [
+        {
+            "target_id": "payment_info_card",
+            "position": "prepend_child",
+            "components": [
+                {
+                    "type": "basic",
+                    "name": "Div",
+                    "if": "{{(nicepay_escrow.data?.escrow_payments ?? []).length > 0}}",
+                    "props": { "className": "mb-5 flex items-center gap-2 px-3 py-2.5 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-lg" },
+                    "children": [
+                        {
+                            "type": "basic",
+                            "name": "Span",
+                            "props": { "className": "inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-emerald-500 text-white flex-shrink-0" },
+                            "text": "$t:sirsoft-pay-nicepayments.admin.escrow_badge"
+                        },
+                        {
+                            "type": "basic",
+                            "name": "Span",
+                            "props": { "className": "text-sm text-emerald-800 dark:text-emerald-300" },
+                            "text": "$t:sirsoft-pay-nicepayments.admin.escrow_payment_notice"
+                        }
+                    ]
+                }
+            ]
+        },
         {
             "target_id": "tab_content_area",
             "position": "append_child",
@@ -39,7 +75,7 @@
                             "name": "Div",
                             "props": { "className": "space-y-4" },
                             "iteration": {
-                                "source": "{{order.data?.payments?.filter(p => p.is_escrow && p.transaction_id) ?? []}}",
+                                "source": "{{nicepay_escrow.data?.escrow_payments?.filter(p => p.transaction_id) ?? []}}",
                                 "item_var": "payment",
                                 "index_var": "eIdx"
                             },

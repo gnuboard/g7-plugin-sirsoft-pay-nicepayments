@@ -40,6 +40,10 @@ Route::prefix('admin')->name('admin.')->middleware(['auth:sanctum', 'admin'])->g
     Route::post('/vbank-refund', [AdminVbankRefundController::class, 'refund'])
         ->name('vbank.refund');
 
+    // 에스크로 결제 목록 조회
+    Route::get('/orders/{orderNumber}/escrow-payments', [AdminEscrowController::class, 'getEscrowPayments'])
+        ->name('orders.escrow-payments');
+
     // 에스크로 배송 등록
     Route::post('/escrow/register-delivery', [AdminEscrowController::class, 'registerDelivery'])
         ->name('escrow.register-delivery');
