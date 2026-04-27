@@ -12,14 +12,14 @@
     ],
     "injections": [
         {
-            "target_id": "payment_info_card",
+            "target_id": "tab_content_area",
             "position": "prepend_child",
             "components": [
                 {
                     "type": "basic",
                     "name": "Div",
                     "if": "{{(nicepay_escrow.data?.escrow_payments ?? []).length > 0}}",
-                    "props": { "className": "mb-5 flex items-center gap-2 px-3 py-2.5 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-lg" },
+                    "props": { "className": "flex items-center gap-2 px-4 py-3 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-lg" },
                     "children": [
                         {
                             "type": "basic",
@@ -45,7 +45,7 @@
                     "id": "nicepay_escrow_panel",
                     "type": "basic",
                     "name": "Div",
-                    "if": "{{(order.data?.payments?.filter(p => p.is_escrow && p.transaction_id) ?? []).length > 0}}",
+                    "if": "{{(nicepay_escrow.data?.escrow_payments ?? []).length > 0}}",
                     "props": {
                         "className": "card"
                     },
