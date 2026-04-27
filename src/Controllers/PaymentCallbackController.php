@@ -50,29 +50,45 @@ class PaymentCallbackController
         $validated = $request->validated();
 
         $authResultCode = $validated['AuthResultCode'];
-        $nextAppUrl = $validated['NextAppURL'];
-        $txTid = $validated['TxTid'];
-        $authToken = $validated['AuthToken'];
-        $mid = $validated['MID'];
-        $moid = $validated['Moid'];
-        $amt = (int) $validated['Amt'];
-        $netCancelUrl = $validated['NetCancelURL'];
-        $signature = $validated['Signature'];
+        $authResultMsg = $validated['AuthResultMsg'] ?? '';
+        $moid = $validated['Moid'] ?? '';
 
-        // 1단계: 인증 결과 코드 확인
+        // 1단계: 인증 결과 코드 확인 (실패/취소 케이스는 여기서 종료)
         if ($authResultCode !== '0000') {
-            Log::warning('NicePayments: auth result failed', [
+            // 사용자가 결제창에서 '종료' 를 눌러 취소한 경우와 실제 결제 실패를 구분.
+            // NicePay 의 사용자 취소 표준 코드는 '9999' 이며, 일부 PG 가 다른 코드 + 메시지로
+            // 보내는 경우도 있어 메시지에 '사용자' 또는 '취소' 가 포함되면 같이 cancellation 으로 처리.
+            $isUserCancelled = $authResultCode === '9999'
+                || str_contains($authResultMsg, '사용자')
+                || str_contains($authResultMsg, '취소');
+
+            Log::info('NicePayments: auth ' . ($isUserCancelled ? 'cancelled by user' : 'failed'), [
                 'moid' => $moid,
                 'auth_result_code' => $authResultCode,
-                'auth_result_msg' => $validated['AuthResultMsg'] ?? '',
+                'auth_result_msg' => $authResultMsg,
                 'ip' => $request->ip(),
             ]);
+
+            if ($isUserCancelled) {
+                // 사용자 취소: 에러 query 없이 체크아웃으로 깨끗하게 복귀.
+                // (NicePay 다이얼로그에서 이미 사용자가 취소를 선택했으므로 추가 toast 불필요)
+                return redirect($this->resolveFailUrl([]));
+            }
 
             return redirect($this->resolveFailUrl([
                 'error' => 'auth_failed',
                 'orderId' => $moid,
             ]));
         }
+
+        // 인증 성공 케이스 — 추가 필드 추출
+        $nextAppUrl = $validated['NextAppURL'];
+        $txTid = $validated['TxTid'];
+        $authToken = $validated['AuthToken'];
+        $mid = $validated['MID'];
+        $amt = (int) $validated['Amt'];
+        $netCancelUrl = $validated['NetCancelURL'];
+        $signature = $validated['Signature'];
 
         // 2단계: MID 일치 확인
         if ($mid !== $this->apiService->getMid()) {

@@ -27,6 +27,21 @@ class AuthCallbackRequest extends FormRequest
 
     public function rules(): array
     {
+        // 사용자 취소 / 인증 실패 시 NicePay 는 NextAppURL / TxTid / AuthToken /
+        // Signature 등을 보내지 않거나 빈 값으로 보낸다. AuthResultCode 가
+        // '0000' 이 아닐 땐 strict 검증을 풀어 controller 가 직접 분기 처리하도록 한다.
+        // (그렇지 않으면 validation 단계에서 '?error=invalid_params' 로 redirect 되어
+        //  generic 에러 toast 가 뜨고 사용자 취소가 실제 에러처럼 보임)
+        $code = $this->input('AuthResultCode');
+
+        if ($code !== null && $code !== '0000') {
+            return [
+                'AuthResultCode' => ['required', 'string'],
+                'AuthResultMsg' => ['nullable', 'string'],
+                'Moid' => ['nullable', 'string'],
+            ];
+        }
+
         return [
             'AuthResultCode' => ['required', 'string'],
             'AuthResultMsg' => ['nullable', 'string'],
