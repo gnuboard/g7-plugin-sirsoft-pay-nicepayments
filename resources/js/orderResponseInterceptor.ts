@@ -53,6 +53,45 @@ function extractMethod(input: RequestInfo | URL, init?: RequestInit): string {
     return 'GET';
 }
 
+/**
+ * 요청 본문에서 payment_method 필드를 추출
+ *
+ * `_local.paymentMethod` 상태에 의존하지 않고, 백엔드가 실제로 받은 값을
+ * 그대로 사용함으로써 다음 케이스를 안전하게 처리:
+ *   - 사용자가 결제수단 클릭 후 다른 액션으로 상태가 변경된 경우
+ *   - SSR/Hydration 시점 차이로 _local.paymentMethod 가 undefined 인 경우
+ *   - 다른 컴포넌트가 _local 을 동시 갱신하는 경우 (Windows/특정 브라우저 타이밍)
+ *
+ * @returns payment_method 값 ('card' | 'vbank' | 'bank' | 'phone' 등) 또는 undefined
+ */
+function extractPaymentMethodFromRequest(input: RequestInfo | URL, init?: RequestInit): string | undefined {
+    // 1) init.body (string JSON 또는 FormData)
+    if (init?.body !== undefined && init.body !== null) {
+        if (typeof init.body === 'string') {
+            try {
+                const parsed = JSON.parse(init.body) as Record<string, unknown>;
+                const v = parsed.payment_method;
+                if (typeof v === 'string' && v.length > 0) return v;
+            } catch {
+                /* fall through */
+            }
+        } else if (typeof FormData !== 'undefined' && init.body instanceof FormData) {
+            const v = init.body.get('payment_method');
+            if (typeof v === 'string' && v.length > 0) return v;
+        } else if (typeof URLSearchParams !== 'undefined' && init.body instanceof URLSearchParams) {
+            const v = init.body.get('payment_method');
+            if (v && v.length > 0) return v;
+        }
+    }
+
+    // 2) Request 객체 형태 (init 없이 fetch(new Request(...)) 호출 시)
+    //    Request.body 는 ReadableStream 이라 동기 추출 불가 → init 우선 처리.
+    //    이 경로에선 undefined 반환하고 호출 측이 fallback (handler 내부의 _local) 처리.
+    void input;
+
+    return undefined;
+}
+
 function isTargetEndpoint(url: string, method: string): boolean {
     if (method !== 'POST') return false;
     // 쿼리스트링/해시 제거 후 경로만 비교
@@ -139,13 +178,16 @@ export function installOrderResponseInterceptor(): void {
             return response;
         }
 
-        logger.info('intercepted order create response — opening PG popup');
+        // 결제수단을 요청 본문에서 추출 (백엔드가 받은 값과 동일 보장)
+        const paymentMethod = extractPaymentMethodFromRequest(input, init);
+
+        logger.info('intercepted order create response — opening PG popup', { paymentMethod });
 
         // 1) 결제창 호출 (비동기 — 팝업이 뜨도록 fire-and-forget)
         //    실패 시 requestPaymentHandler 내부에서 isSubmittingOrder=false 처리됨
         void requestPaymentHandler({
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            params: { pgPaymentData: pgPaymentData as any },
+            params: { pgPaymentData: pgPaymentData as any, paymentMethod },
         });
 
         // 2) 응답 mutate — 템플릿의 navigate fallback 을 무력화
