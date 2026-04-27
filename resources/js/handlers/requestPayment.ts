@@ -254,9 +254,9 @@ export async function requestPaymentHandler(action: PaymentAction, _context?: un
             formFields.GoodsCl = pgPaymentData.goods_cl ?? '1';
         }
 
-        // 에스크로 결제: 실물 상품 전용 (GoodsCl=1 필수)
+        // 에스크로 결제: TransType=1, GoodsCl=1 (실물 상품 전용)
         if (config.useEscrow) {
-            formFields.EscrowYN = 'Y';
+            formFields.TransType = '1';
             formFields.GoodsCl = '1';
         }
 

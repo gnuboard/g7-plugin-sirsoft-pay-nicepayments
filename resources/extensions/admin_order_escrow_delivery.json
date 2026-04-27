@@ -125,7 +125,7 @@
                                                             "type": "basic",
                                                             "name": "Label",
                                                             "props": { "className": "block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1" },
-                                                            "text": "$t:sirsoft-pay-nicepayments.admin.escrow_sender_name"
+                                                            "text": "$t:sirsoft-pay-nicepayments.admin.escrow_register_name"
                                                         },
                                                         {
                                                             "type": "basic",
@@ -134,28 +134,7 @@
                                                                 "type": "text",
                                                                 "className": "w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                                             },
-                                                            "bindLocal": "_escrow_sender_name"
-                                                        }
-                                                    ]
-                                                },
-                                                {
-                                                    "type": "basic",
-                                                    "name": "Div",
-                                                    "children": [
-                                                        {
-                                                            "type": "basic",
-                                                            "name": "Label",
-                                                            "props": { "className": "block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1" },
-                                                            "text": "$t:sirsoft-pay-nicepayments.admin.escrow_sender_phone"
-                                                        },
-                                                        {
-                                                            "type": "basic",
-                                                            "name": "Input",
-                                                            "props": {
-                                                                "type": "text",
-                                                                "className": "w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                                            },
-                                                            "bindLocal": "_escrow_sender_phone"
+                                                            "bindLocal": "_escrow_register_name"
                                                         }
                                                     ]
                                                 },
@@ -168,7 +147,7 @@
                                                             "type": "basic",
                                                             "name": "Label",
                                                             "props": { "className": "block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1" },
-                                                            "text": "$t:sirsoft-pay-nicepayments.admin.escrow_sender_address"
+                                                            "text": "$t:sirsoft-pay-nicepayments.admin.escrow_buyer_address"
                                                         },
                                                         {
                                                             "type": "basic",
@@ -177,71 +156,7 @@
                                                                 "type": "text",
                                                                 "className": "w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                                             },
-                                                            "bindLocal": "_escrow_sender_address"
-                                                        }
-                                                    ]
-                                                },
-                                                {
-                                                    "type": "basic",
-                                                    "name": "Div",
-                                                    "children": [
-                                                        {
-                                                            "type": "basic",
-                                                            "name": "Label",
-                                                            "props": { "className": "block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1" },
-                                                            "text": "$t:sirsoft-pay-nicepayments.admin.escrow_receiver_name"
-                                                        },
-                                                        {
-                                                            "type": "basic",
-                                                            "name": "Input",
-                                                            "props": {
-                                                                "type": "text",
-                                                                "className": "w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                                            },
-                                                            "bindLocal": "_escrow_receiver_name"
-                                                        }
-                                                    ]
-                                                },
-                                                {
-                                                    "type": "basic",
-                                                    "name": "Div",
-                                                    "children": [
-                                                        {
-                                                            "type": "basic",
-                                                            "name": "Label",
-                                                            "props": { "className": "block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1" },
-                                                            "text": "$t:sirsoft-pay-nicepayments.admin.escrow_receiver_phone"
-                                                        },
-                                                        {
-                                                            "type": "basic",
-                                                            "name": "Input",
-                                                            "props": {
-                                                                "type": "text",
-                                                                "className": "w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                                            },
-                                                            "bindLocal": "_escrow_receiver_phone"
-                                                        }
-                                                    ]
-                                                },
-                                                {
-                                                    "type": "basic",
-                                                    "name": "Div",
-                                                    "props": { "className": "sm:col-span-2" },
-                                                    "children": [
-                                                        {
-                                                            "type": "basic",
-                                                            "name": "Label",
-                                                            "props": { "className": "block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1" },
-                                                            "text": "$t:sirsoft-pay-nicepayments.admin.escrow_receiver_address"
-                                                        },
-                                                        {
-                                                            "type": "basic",
-                                                            "name": "Input",
-                                                            "props": {
-                                                                "type": "text",
-                                                                "className": "w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                                            },
-                                                            "bindLocal": "_escrow_receiver_address"
+                                                            "bindLocal": "_escrow_buyer_address"
                                                         }
                                                     ]
                                                 }
@@ -289,12 +204,8 @@
                                                                             "tid": "{{payment.transaction_id}}",
                                                                             "delivery_name": "{{_local._escrow_delivery_name}}",
                                                                             "tracking_number": "{{_local._escrow_tracking_number}}",
-                                                                            "sender_name": "{{_local._escrow_sender_name}}",
-                                                                            "sender_phone": "{{_local._escrow_sender_phone}}",
-                                                                            "sender_address": "{{_local._escrow_sender_address}}",
-                                                                            "receiver_name": "{{_local._escrow_receiver_name}}",
-                                                                            "receiver_phone": "{{_local._escrow_receiver_phone}}",
-                                                                            "receiver_address": "{{_local._escrow_receiver_address}}"
+                                                                            "buyer_address": "{{_local._escrow_buyer_address}}",
+                                                                            "register_name": "{{_local._escrow_register_name}}"
                                                                         }
                                                                     },
                                                                     "onSuccess": [

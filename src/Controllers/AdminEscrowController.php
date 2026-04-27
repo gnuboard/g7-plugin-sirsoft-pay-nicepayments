@@ -30,12 +30,8 @@ class AdminEscrowController extends AdminBaseController
             'tid' => 'required|string',
             'delivery_name' => 'required|string|max:100',
             'tracking_number' => 'required|string|max:100',
-            'sender_name' => 'required|string|max:50',
-            'sender_phone' => 'required|string|max:20',
-            'sender_address' => 'required|string|max:200',
-            'receiver_name' => 'required|string|max:50',
-            'receiver_phone' => 'required|string|max:20',
-            'receiver_address' => 'required|string|max:200',
+            'buyer_address' => 'required|string|max:200',
+            'register_name' => 'required|string|max:50',
         ]);
 
         try {
@@ -43,12 +39,8 @@ class AdminEscrowController extends AdminBaseController
                 tid: $validated['tid'],
                 deliveryName: $validated['delivery_name'],
                 trackingNumber: $validated['tracking_number'],
-                senderName: $validated['sender_name'],
-                senderPhone: $validated['sender_phone'],
-                senderAddress: $validated['sender_address'],
-                receiverName: $validated['receiver_name'],
-                receiverPhone: $validated['receiver_phone'],
-                receiverAddress: $validated['receiver_address'],
+                buyerAddress: $validated['buyer_address'],
+                registerName: $validated['register_name'],
             );
 
             Log::info('NicePayments: escrow delivery registered', [
