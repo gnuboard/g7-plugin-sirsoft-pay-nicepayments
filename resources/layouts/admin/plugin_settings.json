@@ -19,6 +19,15 @@
             "auth_required": true,
             "initLocal": "form",
             "refetchOnMount": true
+        },
+        {
+            "id": "vbank_info",
+            "type": "api",
+            "endpoint": "/api/plugins/sirsoft-pay-nicepayments/admin/vbank-notify-url",
+            "method": "GET",
+            "auto_fetch": true,
+            "auth_required": true,
+            "initLocal": "vbankInfo"
         }
     ],
     "slots": {
@@ -700,7 +709,7 @@
                                                 "props": {
                                                     "type": "text",
                                                     "readOnly": true,
-                                                    "value": "{{(_global.site_url ?? '').replace(/\\/$/, '') + '/plugins/sirsoft-pay-nicepayments/payment/vbank-notify'}}",
+                                                    "value": "{{_local.vbankInfo?.url ?? '/plugins/sirsoft-pay-nicepayments/payment/vbank-notify'}}",
                                                     "className": "flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-900 text-gray-700 dark:text-gray-300 font-mono text-sm"
                                                 }
                                             },
@@ -716,9 +725,9 @@
                                                         "handler": "sequence",
                                                         "actions": [
                                                             {
-                                                                "handler": "clipboard",
+                                                                "handler": "copyToClipboard",
                                                                 "params": {
-                                                                    "text": "{{(_global.site_url ?? '').replace(/\\/$/, '') + '/plugins/sirsoft-pay-nicepayments/payment/vbank-notify'}}"
+                                                                    "text": "{{_local.vbankInfo?.url ?? '/plugins/sirsoft-pay-nicepayments/payment/vbank-notify'}}"
                                                                 }
                                                             },
                                                             {

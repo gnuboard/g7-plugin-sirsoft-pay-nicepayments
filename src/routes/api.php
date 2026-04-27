@@ -21,6 +21,16 @@ Route::middleware(['auth:sanctum'])->group(function () {
 });
 
 Route::prefix('admin')->name('admin.')->middleware(['auth:sanctum', 'admin'])->group(function () {
+    // 가상계좌 입금통보 URL 조회 (관리자 설정 페이지 표시용)
+    Route::get('/vbank-notify-url', function () {
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'url' => url('/plugins/sirsoft-pay-nicepayments/payment/vbank-notify'),
+            ],
+        ]);
+    })->name('vbank.notify.url');
+
     // TID 단건 거래 조회
     Route::post('/transaction/query', [AdminTransactionController::class, 'query'])
         ->name('transaction.query');
