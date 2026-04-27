@@ -39,6 +39,8 @@
         "result_amount": "결제 금액",
         "result_status": "결제 상태",
         "result_method": "결제 수단",
+        "result_auth_code": "승인번호",
+        "result_auth_date": "승인일시",
         "result_result_code": "결과 코드",
         "order_verify_title": "나이스페이먼츠 결제 검증",
         "order_verify_description": "나이스페이먼츠 서버에서 실시간으로 결제 상태를 조회합니다.",

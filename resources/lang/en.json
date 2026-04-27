@@ -39,6 +39,8 @@
         "result_amount": "Amount",
         "result_status": "Payment Status",
         "result_method": "Payment Method",
+        "result_auth_code": "Authorization Code",
+        "result_auth_date": "Authorization Date",
         "result_result_code": "Result Code",
         "order_verify_title": "NicePayments Verification",
         "order_verify_description": "Query real-time payment status from NicePayments server.",
