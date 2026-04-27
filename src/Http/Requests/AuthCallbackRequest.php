@@ -7,6 +7,7 @@ namespace Plugins\Sirsoft\Pay\Nicepayments\Http\Requests;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
+use Plugins\Sirsoft\Pay\Nicepayments\Support\UrlHelper;
 
 /**
  * 나이스페이먼츠 결제 승인 콜백 요청 검증
@@ -46,9 +47,10 @@ class AuthCallbackRequest extends FormRequest
         $settings = plugin_settings(self::PLUGIN_IDENTIFIER);
         $baseUrl = $settings['redirect_fail_url'] ?? '/shop/checkout';
         $separator = str_contains($baseUrl, '?') ? '&' : '?';
+        $url = $baseUrl . $separator . http_build_query(['error' => 'invalid_params']);
 
         throw new HttpResponseException(
-            redirect($baseUrl . $separator . http_build_query(['error' => 'invalid_params']))
+            redirect(UrlHelper::toAbsolute($url, $this))
         );
     }
 }

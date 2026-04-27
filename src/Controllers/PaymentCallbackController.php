@@ -17,6 +17,7 @@ use Modules\Sirsoft\Ecommerce\Services\OrderProcessingService;
 use Plugins\Sirsoft\Pay\Nicepayments\Http\Requests\AuthCallbackRequest;
 use Plugins\Sirsoft\Pay\Nicepayments\Http\Requests\VbankNotifyRequest;
 use Plugins\Sirsoft\Pay\Nicepayments\Services\NicePaymentsApiService;
+use Plugins\Sirsoft\Pay\Nicepayments\Support\UrlHelper;
 
 /**
  * 나이스페이먼츠 결제 콜백 컨트롤러
@@ -350,8 +351,9 @@ class PaymentCallbackController
     {
         $settings = $this->pluginSettingsService->get(self::PLUGIN_IDENTIFIER) ?? [];
         $urlTemplate = $settings['redirect_success_url'] ?? '/shop/orders/{orderId}/complete';
+        $url = str_replace('{orderId}', $orderId, $urlTemplate);
 
-        return str_replace('{orderId}', $orderId, $urlTemplate);
+        return UrlHelper::toAbsolute($url);
     }
 
     private function resolveFailUrl(array $queryParams = []): string
@@ -359,14 +361,13 @@ class PaymentCallbackController
         $settings = $this->pluginSettingsService->get(self::PLUGIN_IDENTIFIER) ?? [];
         $baseUrl = $settings['redirect_fail_url'] ?? '/shop/checkout';
 
-        if (empty($queryParams)) {
-            return $baseUrl;
+        if (! empty($queryParams)) {
+            $query = http_build_query(array_filter($queryParams));
+            $separator = str_contains($baseUrl, '?') ? '&' : '?';
+            $baseUrl = $baseUrl . $separator . $query;
         }
 
-        $query = http_build_query(array_filter($queryParams));
-        $separator = str_contains($baseUrl, '?') ? '&' : '?';
-
-        return $baseUrl . $separator . $query;
+        return UrlHelper::toAbsolute($baseUrl);
     }
 
     /** PG 응답에서 개인정보(PII) 필드 제거 후 반환 */
