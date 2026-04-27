@@ -194,7 +194,6 @@ class PaymentCallbackController
                     'card_name' => $pgResponse['IssuCardName'] ?? $pgResponse['CardName'] ?? null,
                     'card_installment_months' => (int) ($pgResponse['CardQuota'] ?? 0),
                     'is_interest_free' => false,
-                    'is_escrow' => $isEscrow,
                     'embedded_pg_provider' => null,
                     'receipt_url' => $pgResponse['ReceiptUrl'] ?? null,
                     'payment_meta' => [
@@ -205,6 +204,12 @@ class PaymentCallbackController
                     ],
                     'payment_device' => $this->detectDevice($request),
                 ], $amt);
+
+                // completePayment()가 is_escrow를 지원하지 않으므로 별도 업데이트
+                if ($isEscrow) {
+                    $order->refresh();
+                    $order->payment?->update(['is_escrow' => true]);
+                }
             }
 
             return redirect($this->resolveSuccessUrl($moid));
