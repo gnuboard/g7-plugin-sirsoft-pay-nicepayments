@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\Base\AdminBaseController;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Plugins\Sirsoft\Pay\Nicepayments\Services\NicePaymentsApiService;
 
 class AdminTransactionController extends AdminBaseController
@@ -45,6 +46,10 @@ class AdminTransactionController extends AdminBaseController
 
             return ResponseHelper::success('messages.success', $result);
         } catch (\Exception $e) {
+            Log::error('NicePayments queryTransaction failed', [
+                'tid' => $tid,
+                'error' => $e->getMessage(),
+            ]);
             return ResponseHelper::error('messages.failed', 502, null);
         }
     }

@@ -1,10 +1,301 @@
 {
     "target_layout": "admin_ecommerce_order_detail",
+    "data_sources": [
+        {
+            "id": "nicepay_escrow",
+            "type": "api",
+            "endpoint": "/api/plugins/sirsoft-pay-nicepayments/admin/orders/{{route.orderNumber}}/escrow-payments",
+            "method": "GET",
+            "auto_fetch": true,
+            "auth_required": true
+        }
+    ],
     "injections": [
+        {
+            "target_id": "tab_content_area",
+            "position": "prepend_child",
+            "components": [
+                {
+                    "type": "basic",
+                    "name": "Div",
+                    "if": "{{(nicepay_escrow.data?.escrow_payments ?? []).length > 0}}",
+                    "props": { "className": "flex items-center gap-2 px-4 py-3 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-lg" },
+                    "children": [
+                        {
+                            "type": "basic",
+                            "name": "Span",
+                            "props": { "className": "inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-emerald-500 text-white flex-shrink-0" },
+                            "text": "$t:sirsoft-pay-nicepayments.admin.escrow_badge"
+                        },
+                        {
+                            "type": "basic",
+                            "name": "Span",
+                            "props": { "className": "text-sm text-emerald-800 dark:text-emerald-300" },
+                            "text": "$t:sirsoft-pay-nicepayments.admin.escrow_payment_notice"
+                        }
+                    ]
+                }
+            ]
+        },
         {
             "target_id": "tab_content_area",
             "position": "append_child",
             "components": [
+                {
+                    "id": "nicepay_escrow_panel",
+                    "type": "basic",
+                    "name": "Div",
+                    "if": "{{(nicepay_escrow.data?.escrow_payments ?? []).length > 0}}",
+                    "props": {
+                        "className": "card"
+                    },
+                    "children": [
+                        {
+                            "id": "nicepay_escrow_header",
+                            "type": "basic",
+                            "name": "Div",
+                            "props": { "className": "flex items-center gap-2 mb-4" },
+                            "children": [
+                                {
+                                    "type": "basic",
+                                    "name": "Div",
+                                    "props": { "className": "w-1.5 h-4 bg-emerald-500 rounded-full flex-shrink-0" }
+                                },
+                                {
+                                    "type": "basic",
+                                    "name": "H3",
+                                    "props": { "className": "text-sm font-semibold text-gray-800 dark:text-gray-200" },
+                                    "text": "$t:sirsoft-pay-nicepayments.admin.escrow_delivery_title"
+                                }
+                            ]
+                        },
+                        {
+                            "id": "nicepay_escrow_payments",
+                            "type": "basic",
+                            "name": "Div",
+                            "props": { "className": "space-y-4" },
+                            "iteration": {
+                                "source": "{{nicepay_escrow.data?.escrow_payments?.filter(p => p.transaction_id) ?? []}}",
+                                "item_var": "payment",
+                                "index_var": "eIdx"
+                            },
+                            "children": [
+                                {
+                                    "type": "basic",
+                                    "name": "Div",
+                                    "props": { "className": "rounded-lg border border-gray-100 dark:border-gray-700 p-4 bg-gray-50 dark:bg-gray-800/50 space-y-4" },
+                                    "children": [
+                                        {
+                                            "type": "basic",
+                                            "name": "Div",
+                                            "props": { "className": "flex items-center gap-2" },
+                                            "children": [
+                                                {
+                                                    "type": "basic",
+                                                    "name": "Span",
+                                                    "props": { "className": "text-xs text-gray-500 dark:text-gray-400" },
+                                                    "text": "TID:"
+                                                },
+                                                {
+                                                    "type": "basic",
+                                                    "name": "Span",
+                                                    "props": { "className": "font-mono text-xs text-gray-900 dark:text-gray-100" },
+                                                    "text": "{{payment.transaction_id}}"
+                                                }
+                                            ]
+                                        },
+                                        {
+                                            "type": "basic",
+                                            "name": "Div",
+                                            "props": { "className": "grid grid-cols-1 sm:grid-cols-2 gap-3" },
+                                            "children": [
+                                                {
+                                                    "type": "basic",
+                                                    "name": "Div",
+                                                    "children": [
+                                                        {
+                                                            "type": "basic",
+                                                            "name": "Label",
+                                                            "props": { "className": "block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1" },
+                                                            "text": "$t:sirsoft-pay-nicepayments.admin.escrow_delivery_company"
+                                                        },
+                                                        {
+                                                            "type": "basic",
+                                                            "name": "Input",
+                                                            "props": {
+                                                                "type": "text",
+                                                                "placeholder": "$t:sirsoft-pay-nicepayments.admin.escrow_delivery_company_placeholder",
+                                                                "className": "w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                                                            },
+                                                            "bindLocal": "_escrow_delivery_name"
+                                                        }
+                                                    ]
+                                                },
+                                                {
+                                                    "type": "basic",
+                                                    "name": "Div",
+                                                    "children": [
+                                                        {
+                                                            "type": "basic",
+                                                            "name": "Label",
+                                                            "props": { "className": "block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1" },
+                                                            "text": "$t:sirsoft-pay-nicepayments.admin.escrow_tracking_number"
+                                                        },
+                                                        {
+                                                            "type": "basic",
+                                                            "name": "Input",
+                                                            "props": {
+                                                                "type": "text",
+                                                                "placeholder": "$t:sirsoft-pay-nicepayments.admin.escrow_tracking_number_placeholder",
+                                                                "className": "w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm font-mono focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                                                            },
+                                                            "bindLocal": "_escrow_tracking_number"
+                                                        }
+                                                    ]
+                                                },
+                                                {
+                                                    "type": "basic",
+                                                    "name": "Div",
+                                                    "children": [
+                                                        {
+                                                            "type": "basic",
+                                                            "name": "Label",
+                                                            "props": { "className": "block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1" },
+                                                            "text": "$t:sirsoft-pay-nicepayments.admin.escrow_register_name"
+                                                        },
+                                                        {
+                                                            "type": "basic",
+                                                            "name": "Input",
+                                                            "props": {
+                                                                "type": "text",
+                                                                "className": "w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                                                            },
+                                                            "bindLocal": "_escrow_register_name"
+                                                        }
+                                                    ]
+                                                },
+                                                {
+                                                    "type": "basic",
+                                                    "name": "Div",
+                                                    "props": { "className": "sm:col-span-2" },
+                                                    "children": [
+                                                        {
+                                                            "type": "basic",
+                                                            "name": "Label",
+                                                            "props": { "className": "block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1" },
+                                                            "text": "$t:sirsoft-pay-nicepayments.admin.escrow_buyer_address"
+                                                        },
+                                                        {
+                                                            "type": "basic",
+                                                            "name": "Input",
+                                                            "props": {
+                                                                "type": "text",
+                                                                "className": "w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                                                            },
+                                                            "bindLocal": "_escrow_buyer_address"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        },
+                                        {
+                                            "type": "basic",
+                                            "name": "Div",
+                                            "if": "{{_local._escrowError}}",
+                                            "props": { "className": "text-xs text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 rounded px-2 py-1.5" },
+                                            "text": "{{_local._escrowError}}"
+                                        },
+                                        {
+                                            "type": "basic",
+                                            "name": "Div",
+                                            "props": { "className": "flex justify-end" },
+                                            "children": [
+                                                {
+                                                    "type": "basic",
+                                                    "name": "Button",
+                                                    "props": {
+                                                        "disabled": "{{_local._escrowSubmitting}}",
+                                                        "className": "flex items-center gap-1.5 px-4 py-2 text-sm font-medium bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                                    },
+                                                    "actions": [
+                                                        {
+                                                            "type": "click",
+                                                            "handler": "sequence",
+                                                            "actions": [
+                                                                {
+                                                                    "handler": "setState",
+                                                                    "params": {
+                                                                        "target": "local",
+                                                                        "_escrowSubmitting": true,
+                                                                        "_escrowError": null
+                                                                    }
+                                                                },
+                                                                {
+                                                                    "handler": "apiCall",
+                                                                    "auth_required": true,
+                                                                    "target": "/api/plugins/sirsoft-pay-nicepayments/admin/escrow/register-delivery",
+                                                                    "params": {
+                                                                        "method": "POST",
+                                                                        "body": {
+                                                                            "tid": "{{payment.transaction_id}}",
+                                                                            "delivery_name": "{{_local._escrow_delivery_name}}",
+                                                                            "tracking_number": "{{_local._escrow_tracking_number}}",
+                                                                            "buyer_address": "{{_local._escrow_buyer_address}}",
+                                                                            "register_name": "{{_local._escrow_register_name}}"
+                                                                        }
+                                                                    },
+                                                                    "onSuccess": [
+                                                                        {
+                                                                            "handler": "setState",
+                                                                            "params": {
+                                                                                "target": "local",
+                                                                                "_escrowSubmitting": false
+                                                                            }
+                                                                        },
+                                                                        {
+                                                                            "handler": "toast",
+                                                                            "params": {
+                                                                                "type": "success",
+                                                                                "message": "$t:sirsoft-pay-nicepayments.admin.escrow_register_success"
+                                                                            }
+                                                                        }
+                                                                    ],
+                                                                    "onError": [
+                                                                        {
+                                                                            "handler": "setState",
+                                                                            "params": {
+                                                                                "target": "local",
+                                                                                "_escrowSubmitting": false,
+                                                                                "_escrowError": "$t:sirsoft-pay-nicepayments.admin.escrow_register_error"
+                                                                            }
+                                                                        }
+                                                                    ]
+                                                                }
+                                                            ]
+                                                        }
+                                                    ],
+                                                    "children": [
+                                                        {
+                                                            "type": "basic",
+                                                            "name": "Icon",
+                                                            "if": "{{_local._escrowSubmitting}}",
+                                                            "props": { "name": "spinner", "className": "w-4 h-4 animate-spin" }
+                                                        },
+                                                        {
+                                                            "type": "basic",
+                                                            "name": "Span",
+                                                            "text": "$t:sirsoft-pay-nicepayments.admin.escrow_register_button"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                },
                 {
                     "id": "nicepay_verify_panel",
                     "type": "basic",
@@ -192,7 +483,6 @@
                                                             "text": "$t:sirsoft-pay-nicepayments.admin.pay_status_unknown"
                                                         },
                                                         {
-                                                            "comment": "에스크로 배지 — EscrowYN=Y 또는 로컬 DB is_escrow=true",
                                                             "type": "basic",
                                                             "name": "Span",
                                                             "if": "{{_local._nicepayResult.EscrowYN === 'Y' || _local._nicepayResult._local_is_escrow === true}}",
