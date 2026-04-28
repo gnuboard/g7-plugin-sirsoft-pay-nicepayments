@@ -186,26 +186,30 @@ class NicePaymentsApiService
         $ediDate = $this->computeEdiDate();
         $signData = bin2hex(hash('sha256', $this->mid . (string) $cancelAmt . $ediDate . $this->merchantKey, true));
 
+        // NicePay 취소 API는 EUC-KR 인코딩 요구
+        $cancelMsgEuc = mb_convert_encoding($cancelMsg, 'EUC-KR', 'UTF-8');
+
         $params = [
             'TID' => $tid,
             'MID' => $this->mid,
             'Moid' => $moid,
             'CancelAmt' => $cancelAmt,
-            'CancelMsg' => $cancelMsg,
+            'CancelMsg' => $cancelMsgEuc,
             'PartialCancelCode' => $partialCancelCode,
             'EdiDate' => $ediDate,
             'SignData' => $signData,
-            'CharSet' => 'utf-8',
+            'CharSet' => 'euc-kr',
         ];
 
         // 가상계좌 입금 완료 건 환불 시 환불 계좌 정보 필수
         if ($refundAcctNo !== null) {
-            $params['RefundAcctNo'] = $refundAcctNo;
+            $params['RefundAcctNo'] = mb_convert_encoding($refundAcctNo, 'EUC-KR', 'UTF-8');
             $params['RefundBankCd'] = $refundBankCd ?? '';
-            $params['RefundAcctNm'] = $refundAcctNm ?? '';
+            $params['RefundAcctNm'] = mb_convert_encoding($refundAcctNm ?? '', 'EUC-KR', 'UTF-8');
         }
 
-        $response = Http::timeout(15)->asForm()->post(self::CANCEL_URL, $params);
+        $response = Http::timeout(15)->withOptions(['body_format' => 'form_params'])
+            ->post(self::CANCEL_URL, $params);
 
         if ($response->failed()) {
             throw new \Exception('NicePayments cancel API error: HTTP ' . $response->status());
