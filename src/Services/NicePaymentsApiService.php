@@ -208,14 +208,16 @@ class NicePaymentsApiService
             $params['RefundAcctNm'] = mb_convert_encoding($refundAcctNm ?? '', 'EUC-KR', 'UTF-8');
         }
 
-        $response = Http::timeout(15)->withOptions(['body_format' => 'form_params'])
-            ->post(self::CANCEL_URL, $params);
+        $response = Http::timeout(15)->asForm()->post(self::CANCEL_URL, $params);
 
         if ($response->failed()) {
             throw new \Exception('NicePayments cancel API error: HTTP ' . $response->status());
         }
 
-        $result = $response->json() ?? [];
+        // 취소 API는 EUC-KR 응답을 반환하므로 UTF-8로 변환 후 JSON 파싱
+        $rawBody = $response->body();
+        $utf8Body = mb_convert_encoding($rawBody, 'UTF-8', 'EUC-KR');
+        $result = json_decode($utf8Body, true) ?? [];
 
         if (! \in_array($result['ResultCode'] ?? '', ['2001', '2211'], true)) {
             Log::error('NicePayments cancel failed', [

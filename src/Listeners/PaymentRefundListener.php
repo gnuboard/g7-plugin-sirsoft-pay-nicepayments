@@ -66,20 +66,21 @@ class PaymentRefundListener implements HookListenerInterface
 
             $cancelMsg = $reason ?? __('sirsoft-pay-nicepayments::messages.refund.default_reason');
             $cancelAmt = (int) $refundAmount;
-            $maxRefundable = (int) $payment->getCancellableAmount();
 
-            if ($cancelAmt <= 0 || $cancelAmt > $maxRefundable) {
+            if ($cancelAmt <= 0) {
                 return [
                     'success' => false,
                     'error_code' => 'INVALID_REFUND_AMOUNT',
-                    'error_message' => '환불 금액이 유효하지 않습니다. (요청: ' . $cancelAmt . '원, 취소 가능: ' . $maxRefundable . '원)',
+                    'error_message' => '환불 금액이 유효하지 않습니다. (요청: ' . $cancelAmt . '원)',
                     'transaction_id' => null,
                 ];
             }
 
             $moid = (string) $order->order_number;
 
-            $isPartial = $cancelAmt < $maxRefundable;
+            // 코어가 cancelled_amount를 훅 호출 전에 먼저 업데이트하므로
+            // getCancellableAmount() > 0이면 부분취소, 0이면 전액취소
+            $isPartial = $payment->getCancellableAmount() > 0;
             $response = $apiService->cancelPayment($tid, $moid, $cancelAmt, $cancelMsg, $isPartial ? 1 : 0);
 
             Log::info('NicePayments: refund success', [
