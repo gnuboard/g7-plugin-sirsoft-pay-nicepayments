@@ -41,7 +41,7 @@ class NicePaymentsApiService
 
     private static function buildLiveMid(string $suffix): string
     {
-        return str_starts_with($suffix, 'SR') ? $suffix : 'SR' . $suffix;
+        return str_starts_with($suffix, 'sir') ? $suffix : 'sir' . $suffix;
     }
 
     public function getMid(): string
@@ -52,6 +52,11 @@ class NicePaymentsApiService
     public function isEscrowEnabled(): bool
     {
         return $this->useEscrow;
+    }
+
+    public function isTestMode(): bool
+    {
+        return $this->isTest;
     }
 
     /**

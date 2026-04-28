@@ -175,6 +175,7 @@ class PaymentCallbackController
                         'vbank_exp_date' => isset($pgResponse['VbankExpDate'])
                             ? $pgResponse['VbankExpDate'] . ($pgResponse['VbankExpTime'] ?? '235959')
                             : null,
+                        'is_test_mode' => $this->apiService->isTestMode(),
                         'pg_raw_response' => $this->sanitizePgResponse($pgResponse),
                     ];
                     $payment->save();
@@ -200,6 +201,7 @@ class PaymentCallbackController
                         'result_code' => $resultCode,
                         'pay_method' => $payMethod,
                         'auth_date' => $pgResponse['AuthDate'] ?? null,
+                        'is_test_mode' => $this->apiService->isTestMode(),
                         'pg_raw_response' => $this->sanitizePgResponse($pgResponse),
                     ],
                     'payment_device' => $this->detectDevice($request),
@@ -384,6 +386,7 @@ class PaymentCallbackController
                         'vbank_input_name' => $validated['VbankInputName'] ?? null,
                         'fn_cd' => $validated['FnCd'] ?? null,
                         'fn_name' => $validated['FnName'] ?? null,
+                        'is_test_mode' => $this->apiService->isTestMode(),
                         'pg_raw_response' => $this->sanitizePgResponse($validated),
                         // 어드민 표시용 통보 이력 (전체 누적)
                         'vbank_notifications' => $allNotifications,
