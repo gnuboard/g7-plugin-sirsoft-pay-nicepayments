@@ -26,6 +26,15 @@ function getEasyPayButtonContainer(): Element | null {
     return null;
 }
 
+function clearEasyPayButtonStyles(): void {
+    const container = getEasyPayButtonContainer();
+    if (!container) return;
+    container.querySelectorAll<HTMLButtonElement>('button').forEach(btn => {
+        btn.style.boxShadow = '';
+        btn.style.outline = '';
+    });
+}
+
 function updateEasyPayButtonStyles(selectedMethod: string): void {
     const container = getEasyPayButtonContainer();
     if (!container) return;
@@ -54,5 +63,21 @@ export function setPaymentMethodHandler(action: any): void {
 
     if (isEasyPay) {
         updateEasyPayButtonStyles(paymentMethod);
+    } else {
+        clearEasyPayButtonStyles();
     }
+}
+
+// 코어 결제 버튼(신용카드 등) 클릭 시에도 간편결제 선택 표시 해제
+export function initEasyPayWatcher(): void {
+    const templateApp = (window as any).__templateApp;
+    if (typeof templateApp?.onGlobalStateChange !== 'function') return;
+
+    templateApp.onGlobalStateChange((state: any) => {
+        const paymentMethod = state?._local?.paymentMethod;
+        if (typeof paymentMethod !== 'string') return;
+        if (!paymentMethod.startsWith('nicepay_')) {
+            clearEasyPayButtonStyles();
+        }
+    });
 }

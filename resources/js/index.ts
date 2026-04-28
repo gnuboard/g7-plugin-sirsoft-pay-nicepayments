@@ -1,4 +1,5 @@
 import { handlerMap } from './handlers';
+import { initEasyPayWatcher } from './handlers/setPaymentMethod';
 import { installOrderResponseInterceptor } from './orderResponseInterceptor';
 
 const PLUGIN_IDENTIFIER = 'sirsoft-pay-nicepayments';
@@ -47,6 +48,7 @@ function initPlugin(): void {
 
         if (count > 0) {
             logger.info(`${count} handler(s) registered`);
+            initEasyPayWatcher();
             return;
         }
 
@@ -59,6 +61,7 @@ function initPlugin(): void {
             if (result > 0) {
                 clearInterval(interval);
                 logger.info(`${result} handler(s) registered (after ${retries} retries)`);
+                initEasyPayWatcher();
                 return;
             }
 
