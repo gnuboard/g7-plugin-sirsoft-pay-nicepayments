@@ -12,7 +12,7 @@ class NicePaymentsApiService
 {
     private const CANCEL_URL = 'https://pg-api.nicepay.co.kr/webapi/cancel_process.jsp';
 
-    private const QUERY_URL = 'https://pg-api.nicepay.co.kr/webapi/trade_status.jsp';
+    private const QUERY_URL = 'https://webapi.nicepay.co.kr/webapi/inquery/trans_status.jsp';
 
     private const DELIVERY_REG_URL = 'https://webapi.nicepay.co.kr/webapi/escrow_process.jsp';
 
@@ -32,11 +32,16 @@ class NicePaymentsApiService
         $this->isTest = $settings['is_test_mode'] ?? true;
         $this->mid = $this->isTest
             ? ($settings['test_mid'] ?? '')
-            : ($settings['live_mid'] ?? '');
+            : self::buildLiveMid($settings['live_mid'] ?? '');
         $this->merchantKey = $this->isTest
             ? ($settings['test_merchant_key'] ?? '')
             : ($settings['live_merchant_key'] ?? '');
         $this->useEscrow = (bool) ($settings['use_escrow'] ?? false);
+    }
+
+    private static function buildLiveMid(string $suffix): string
+    {
+        return str_starts_with($suffix, 'SR') ? $suffix : 'SR' . $suffix;
     }
 
     public function getMid(): string

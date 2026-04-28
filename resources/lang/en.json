@@ -11,6 +11,8 @@
         "test_merchant_key_hint": "NicePayments shared test key. No change needed for testing.",
         "section_live_keys": "Live Key Settings",
         "live_mid": "Live Merchant ID (MID)",
+        "live_mid_hint": "Check in NicePayments merchant portal > Merchant Info > KEY Management. Enter only the part after 'SR'.",
+        "live_mid_example": "e.g. If your MID is SRpaytestm, enter only paytestm → Result: SRpaytestm",
         "live_merchant_key": "Live Merchant Key",
         "live_merchant_key_hint": "Keep this key secret.",
         "live_mode_warning_title": "Live Mode Active",

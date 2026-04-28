@@ -11,6 +11,8 @@
         "test_merchant_key_hint": "나이스페이먼츠 공용 테스트 키입니다. 테스트 전용이며 변경하지 않아도 됩니다.",
         "section_live_keys": "라이브 키 설정",
         "live_mid": "라이브 가맹점 ID (MID)",
+        "live_mid_hint": "나이스페이먼츠 상점관리자 > 가맹점정보 > KEY관리에서 확인. 'SR'을 제외한 나머지만 입력하세요.",
+        "live_mid_example": "예) 상점ID가 SRpaytestm이면 paytestm만 입력 → 완성: SRpaytestm",
         "live_merchant_key": "라이브 가맹점 키",
         "live_merchant_key_hint": "외부에 노출되지 않도록 주의하세요.",
         "live_mode_warning_title": "라이브 모드 활성화",
