@@ -196,12 +196,13 @@ class PaymentCallbackController
                     'card_installment_months' => (int) ($pgResponse['CardQuota'] ?? 0),
                     'is_interest_free' => false,
                     'embedded_pg_provider' => null,
-                    'receipt_url' => $pgResponse['ReceiptUrl'] ?? null,
+                    'receipt_url' => 'https://npg.nicepay.co.kr/issue/IssueLoader.do?type=0&TID=' . rawurlencode($pgResponse['TID'] ?? $txTid),
                     'payment_meta' => [
                         'result_code' => $resultCode,
                         'pay_method' => $payMethod,
                         'auth_date' => $pgResponse['AuthDate'] ?? null,
                         'is_test_mode' => $this->apiService->isTestMode(),
+                        'rcpt_tid' => $pgResponse['RcptTID'] ?? null,
                         'pg_raw_response' => $this->sanitizePgResponse($pgResponse),
                     ],
                     'payment_device' => $this->detectDevice($request),
@@ -377,6 +378,7 @@ class PaymentCallbackController
 
                 $this->orderService->completePayment($order, [
                     'transaction_id' => $tid,
+                    'receipt_url' => 'https://npg.nicepay.co.kr/issue/IssueLoader.do?type=0&TID=' . rawurlencode($tid),
                     'payment_meta' => [
                         'result_code' => '4110',
                         'auth_date' => $validated['AuthDate'] ?? null,
@@ -387,6 +389,7 @@ class PaymentCallbackController
                         'fn_cd' => $validated['FnCd'] ?? null,
                         'fn_name' => $validated['FnName'] ?? null,
                         'is_test_mode' => $this->apiService->isTestMode(),
+                        'rcpt_tid' => $validated['RcptTID'] ?? null,
                         'pg_raw_response' => $this->sanitizePgResponse($validated),
                         // 어드민 표시용 통보 이력 (전체 누적)
                         'vbank_notifications' => $allNotifications,

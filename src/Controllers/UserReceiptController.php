@@ -29,7 +29,7 @@ class UserReceiptController
 
         $receiptUrl = $payment->receipt_url;
         if (! $receiptUrl && $payment->transaction_id) {
-            $receiptUrl = self::RECEIPT_BASE_URL . '?type=2&TID=' . rawurlencode($payment->transaction_id);
+            $receiptUrl = self::RECEIPT_BASE_URL . '?type=0&TID=' . rawurlencode($payment->transaction_id);
         }
 
         $cashReceiptUrl = null;
