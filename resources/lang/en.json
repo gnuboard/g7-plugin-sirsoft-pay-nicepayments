@@ -27,7 +27,19 @@
         "redirect_fail_url": "Payment Failure Redirect URL",
         "redirect_fail_url_hint": "Supports relative paths or full URLs. Error details are appended as query parameters.",
         "use_escrow": "Enable Escrow Payment",
-        "use_escrow_hint": "Enables escrow payment for buyer protection when selling physical goods. Delivery registration is required after escrow payment."
+        "use_escrow_hint": "Enables escrow payment for buyer protection when selling physical goods. Delivery registration is required after escrow payment.",
+        "section_easy_pay": "Easy Pay Settings",
+        "section_easy_pay_hint": "Enable the easy pay services you want to offer. Only activate services where you have a signed contract with NicePayments.",
+        "easy_pay_naverpay": "Naver Pay",
+        "easy_pay_naverpay_hint": "Available in test mode",
+        "easy_pay_kakaopay": "Kakao Pay",
+        "easy_pay_samsungpay": "Samsung Pay",
+        "easy_pay_applepay": "Apple Pay",
+        "easy_pay_applepay_hint": "Available on Safari and Apple devices only",
+        "easy_pay_payco": "PAYCO",
+        "easy_pay_skpay": "11pay (SK Pay)",
+        "easy_pay_ssgpay": "SSG Pay",
+        "easy_pay_lpay": "L.pay"
     },
     "admin": {
         "transaction_query_title": "TID Transaction Query",
@@ -67,10 +79,14 @@
         "escrow_register_success": "Escrow delivery has been registered.",
         "escrow_register_error": "Failed to register escrow delivery."
     },
+    "easy_pay": {
+        "section_title": "Easy Pay"
+    },
     "user": {
         "receipt_label": "Receipt",
         "view_receipt": "View Receipt",
-        "view_cash_receipt": "View Cash Receipt"
+        "view_cash_receipt": "View Cash Receipt",
+        "easy_pay_label": "Easy Pay"
     },
     "messages": {
         "refund": {

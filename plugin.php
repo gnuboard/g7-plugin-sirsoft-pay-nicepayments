@@ -95,6 +95,54 @@ class Plugin extends AbstractPlugin
                     'en' => 'Enables escrow payment for buyer protection when selling physical goods. Delivery registration is required after escrow payment.',
                 ],
             ],
+            'easy_pay_naverpay' => [
+                'type' => 'boolean',
+                'default' => false,
+                'label' => ['ko' => '네이버페이 간편결제', 'en' => 'Naver Pay'],
+                'hint' => [
+                    'ko' => '테스트 모드에서도 사용 가능합니다.',
+                    'en' => 'Available in test mode.',
+                ],
+            ],
+            'easy_pay_kakaopay' => [
+                'type' => 'boolean',
+                'default' => false,
+                'label' => ['ko' => '카카오페이 간편결제', 'en' => 'Kakao Pay'],
+            ],
+            'easy_pay_samsungpay' => [
+                'type' => 'boolean',
+                'default' => false,
+                'label' => ['ko' => '삼성페이 간편결제', 'en' => 'Samsung Pay'],
+            ],
+            'easy_pay_applepay' => [
+                'type' => 'boolean',
+                'default' => false,
+                'label' => ['ko' => '애플페이 간편결제', 'en' => 'Apple Pay'],
+                'hint' => [
+                    'ko' => 'Safari 브라우저 및 Apple 기기에서만 사용 가능합니다.',
+                    'en' => 'Available on Safari browser and Apple devices only.',
+                ],
+            ],
+            'easy_pay_payco' => [
+                'type' => 'boolean',
+                'default' => false,
+                'label' => ['ko' => 'PAYCO 간편결제', 'en' => 'PAYCO'],
+            ],
+            'easy_pay_skpay' => [
+                'type' => 'boolean',
+                'default' => false,
+                'label' => ['ko' => '11pay (SK페이) 간편결제', 'en' => '11pay (SK Pay)'],
+            ],
+            'easy_pay_ssgpay' => [
+                'type' => 'boolean',
+                'default' => false,
+                'label' => ['ko' => 'SSG페이 간편결제', 'en' => 'SSG Pay'],
+            ],
+            'easy_pay_lpay' => [
+                'type' => 'boolean',
+                'default' => false,
+                'label' => ['ko' => 'L.pay 간편결제', 'en' => 'L.pay'],
+            ],
         ];
     }
 
@@ -109,6 +157,14 @@ class Plugin extends AbstractPlugin
             'redirect_success_url' => '/shop/orders/{orderId}/complete',
             'redirect_fail_url' => '/shop/checkout',
             'use_escrow' => false,
+            'easy_pay_naverpay' => false,
+            'easy_pay_kakaopay' => false,
+            'easy_pay_samsungpay' => false,
+            'easy_pay_applepay' => false,
+            'easy_pay_payco' => false,
+            'easy_pay_skpay' => false,
+            'easy_pay_ssgpay' => false,
+            'easy_pay_lpay' => false,
         ];
     }
 

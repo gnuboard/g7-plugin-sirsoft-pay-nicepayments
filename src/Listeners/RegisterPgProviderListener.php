@@ -52,6 +52,9 @@ class RegisterPgProviderListener implements HookListenerInterface
         $liveMid = $settings['live_mid'] ?? '';
         $liveMid = str_starts_with($liveMid, 'SR') ? $liveMid : 'SR' . $liveMid;
 
+        $easyPayKeys = ['NAVERPAY' => 'easy_pay_naverpay', 'KAKAOPAY' => 'easy_pay_kakaopay', 'SAMSUNGPAY' => 'easy_pay_samsungpay', 'APPLEPAY' => 'easy_pay_applepay', 'PAYCO' => 'easy_pay_payco', 'SKPAY' => 'easy_pay_skpay', 'SSGPAY' => 'easy_pay_ssgpay', 'LPAY' => 'easy_pay_lpay'];
+        $enabledEasyPays = array_values(array_keys(array_filter($easyPayKeys, fn ($key) => (bool) ($settings[$key] ?? false))));
+
         return array_merge($config, [
             'mid' => $isTest
                 ? ($settings['test_mid'] ?? '')
@@ -60,6 +63,7 @@ class RegisterPgProviderListener implements HookListenerInterface
             'callback_url' => '/plugins/sirsoft-pay-nicepayments/payment/callback',
             'sign_data_url' => '/plugins/sirsoft-pay-nicepayments/payment/sign-data',
             'useEscrow' => (bool) ($settings['use_escrow'] ?? false),
+            'enabled_easy_pays' => $enabledEasyPays,
         ]);
     }
 

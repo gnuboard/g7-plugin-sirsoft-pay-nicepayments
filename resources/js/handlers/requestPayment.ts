@@ -231,6 +231,14 @@ export async function requestPaymentHandler(action: PaymentAction, _context?: un
             vbank: 'VBANK',
             bank: 'BANK',
             phone: 'CELLPHONE',
+            nicepay_naverpay: 'NAVERPAY',
+            nicepay_kakaopay: 'KAKAOPAY',
+            nicepay_samsungpay: 'SAMSUNGPAY',
+            nicepay_applepay: 'APPLEPAY',
+            nicepay_payco: 'PAYCO',
+            nicepay_skpay: 'SKPAY',
+            nicepay_ssgpay: 'SSGPAY',
+            nicepay_lpay: 'LPAY',
         };
         const payMethod = payMethodMap[paymentMethod ?? 'card'] ?? 'CARD';
 
