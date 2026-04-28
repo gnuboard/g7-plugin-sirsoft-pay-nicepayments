@@ -1,19 +1,21 @@
 /**
- * 주문 생성 API 응답 인터셉터
+ * 주문 생성 API 요청/응답 인터셉터
  *
  * 체크아웃 템플릿(_checkout_summary.json:464-485)에는 'sirsoft-tosspayments' 분기만
  * 정의되어 있어서, 'sirsoft-nicepayments' PG는 navigate 기본 분기로 떨어져
  * /shop/orders/{order_number}/complete 로 이동해버림 (결제창 미노출).
  *
+ * 추가로, 간편결제(nicepay_kakaopay 등)는 서버의 PaymentMethodEnum에 없으므로
+ * 요청 전에 payment_method 를 'card' 로 교체하고, 원래 nicepay 방식은 별도 보관한다.
+ *
  * 코어/템플릿 수정 없이 이 문제를 우회하기 위해 plugin loading.strategy=global 시점에
  * window.fetch를 래핑해 다음을 수행:
  *
- *   1. POST /api/modules/sirsoft-ecommerce/user/orders 응답을 가로챈다
- *   2. data.pg_provider === 'sirsoft-nicepayments' 이면 requestPayment 핸들러를 직접 호출하여 결제창 띄움
- *   3. data.redirect_url 을 현재 URL로 교체하고 requires_pg_payment를 false로 변경
- *      → 템플릿 fallback 분기의 navigate 가 navigate-to-self 가 되어 실질적 이동 없음
- *
- * 결과: 체크아웃 페이지에 머문 채 PG 팝업이 뜨고, PG 콜백이 정식 complete 페이지로 redirect.
+ *   1. POST /api/modules/sirsoft-ecommerce/user/orders 요청을 가로챈다
+ *   2. payment_method 가 'nicepay_*' 이면 'card' 로 교체해 서버에 전송
+ *   3. 응답에서 pg_provider === 'sirsoft-nicepayments' 이면 requestPayment 핸들러를 직접 호출
+ *   4. 원래 nicepay 방식(paymentMethod)을 requestPayment 에 전달해 올바른 결제창 호출
+ *   5. redirect_url 을 현재 URL로 교체 → 템플릿 fallback navigate 가 no-op 됨
  */
 
 import { requestPaymentHandler } from './handlers/requestPayment';
@@ -55,60 +57,69 @@ function extractMethod(input: RequestInfo | URL, init?: RequestInit): string {
 
 /**
  * 요청 본문에서 payment_method 필드를 추출
- *
- * `_local.paymentMethod` 상태에 의존하지 않고, 백엔드가 실제로 받은 값을
- * 그대로 사용함으로써 다음 케이스를 안전하게 처리:
- *   - 사용자가 결제수단 클릭 후 다른 액션으로 상태가 변경된 경우
- *   - SSR/Hydration 시점 차이로 _local.paymentMethod 가 undefined 인 경우
- *   - 다른 컴포넌트가 _local 을 동시 갱신하는 경우 (Windows/특정 브라우저 타이밍)
- *
- * @returns payment_method 값 ('card' | 'vbank' | 'bank' | 'phone' 등) 또는 undefined
  */
-function extractPaymentMethodFromRequest(input: RequestInfo | URL, init?: RequestInit): string | undefined {
-    // 1) init.body (string JSON 또는 FormData)
-    if (init?.body !== undefined && init.body !== null) {
-        if (typeof init.body === 'string') {
-            try {
-                const parsed = JSON.parse(init.body) as Record<string, unknown>;
-                const v = parsed.payment_method;
-                if (typeof v === 'string' && v.length > 0) return v;
-            } catch {
-                /* fall through */
-            }
-        } else if (typeof FormData !== 'undefined' && init.body instanceof FormData) {
-            const v = init.body.get('payment_method');
-            if (typeof v === 'string' && v.length > 0) return v;
-        } else if (typeof URLSearchParams !== 'undefined' && init.body instanceof URLSearchParams) {
-            const v = init.body.get('payment_method');
-            if (v && v.length > 0) return v;
-        }
-    }
+function extractPaymentMethodFromRequest(init?: RequestInit): string | undefined {
+    if (init?.body === undefined || init.body === null) return undefined;
 
-    // 2) Request 객체 형태 (init 없이 fetch(new Request(...)) 호출 시)
-    //    Request.body 는 ReadableStream 이라 동기 추출 불가 → init 우선 처리.
-    //    이 경로에선 undefined 반환하고 호출 측이 fallback (handler 내부의 _local) 처리.
-    void input;
+    if (typeof init.body === 'string') {
+        try {
+            const parsed = JSON.parse(init.body) as Record<string, unknown>;
+            const v = parsed.payment_method;
+            if (typeof v === 'string' && v.length > 0) return v;
+        } catch {
+            /* fall through */
+        }
+    } else if (typeof FormData !== 'undefined' && init.body instanceof FormData) {
+        const v = init.body.get('payment_method');
+        if (typeof v === 'string' && v.length > 0) return v;
+    } else if (typeof URLSearchParams !== 'undefined' && init.body instanceof URLSearchParams) {
+        const v = init.body.get('payment_method');
+        if (v && v.length > 0) return v;
+    }
 
     return undefined;
 }
 
+/**
+ * RequestInit 의 body 에서 payment_method 를 newMethod 로 교체한 새 RequestInit 반환
+ */
+function replacePaymentMethodInInit(init: RequestInit, newMethod: string): RequestInit {
+    if (!init.body) return init;
+
+    if (typeof init.body === 'string') {
+        try {
+            const parsed = JSON.parse(init.body) as Record<string, unknown>;
+            if (typeof parsed.payment_method === 'string') {
+                return { ...init, body: JSON.stringify({ ...parsed, payment_method: newMethod }) };
+            }
+        } catch {
+            /* fall through */
+        }
+    } else if (typeof FormData !== 'undefined' && init.body instanceof FormData) {
+        const fd = new FormData();
+        for (const [key, value] of init.body.entries()) {
+            fd.append(key, key === 'payment_method' ? newMethod : value);
+        }
+        return { ...init, body: fd };
+    } else if (typeof URLSearchParams !== 'undefined' && init.body instanceof URLSearchParams) {
+        const sp = new URLSearchParams(init.body.toString());
+        sp.set('payment_method', newMethod);
+        return { ...init, body: sp };
+    }
+
+    return init;
+}
+
 function isTargetEndpoint(url: string, method: string): boolean {
     if (method !== 'POST') return false;
-    // 쿼리스트링/해시 제거 후 경로만 비교
     const path = url.split('?')[0].split('#')[0];
     return path === ORDER_CREATE_PATH || path.endsWith(ORDER_CREATE_PATH);
 }
 
 function buildNoOpRedirectUrl(): string {
-    // 현재 페이지 URL — navigate-to-self 는 React Router에서 사실상 no-op
     return window.location.pathname + window.location.search + window.location.hash;
 }
 
-/**
- * 응답 본문을 mutate한 새 Response 객체 생성
- *
- * 원본 Response 의 status/headers 는 보존하고 본문만 재구성.
- */
 function mutateResponse(originalResponse: Response, mutatedBody: OrderCreateResponseBody): Response {
     const json = JSON.stringify(mutatedBody);
     return new Response(json, {
@@ -123,7 +134,6 @@ export function installOrderResponseInterceptor(): void {
         return;
     }
 
-    // 중복 설치 방지 — HMR / 다중 IIFE 로드 시
     const flag = '__sirsoftNicepayInterceptorInstalled' as const;
     const w = window as unknown as Record<string, unknown>;
     if (w[flag]) {
@@ -137,14 +147,25 @@ export function installOrderResponseInterceptor(): void {
         input: RequestInfo | URL,
         init?: RequestInit
     ): Promise<Response> {
-        const response = await originalFetch(input, init);
-
         const url = extractUrl(input);
         const method = extractMethod(input, init);
 
+        // 타겟 엔드포인트가 아닌 경우 바로 통과
         if (!isTargetEndpoint(url, method)) {
-            return response;
+            return originalFetch(input, init);
         }
+
+        // 간편결제(nicepay_*) 여부 확인 — 서버 전송 전에 'card' 로 교체
+        const originalPaymentMethod = extractPaymentMethodFromRequest(init);
+        const isEasyPay = typeof originalPaymentMethod === 'string' && originalPaymentMethod.startsWith('nicepay_');
+
+        let effectiveInit = init;
+        if (isEasyPay && init) {
+            effectiveInit = replacePaymentMethodInInit(init, 'card');
+            logger.info(`easy pay detected: replacing payment_method '${originalPaymentMethod}' → 'card' for server request`);
+        }
+
+        const response = await originalFetch(input, effectiveInit);
 
         // 본문은 한 번만 읽을 수 있으므로 클론
         let cloned: Response;
@@ -158,7 +179,6 @@ export function installOrderResponseInterceptor(): void {
         try {
             body = (await cloned.json()) as OrderCreateResponseBody;
         } catch {
-            // 비-JSON 응답이면 그대로 통과
             return response;
         }
 
@@ -178,21 +198,27 @@ export function installOrderResponseInterceptor(): void {
             return response;
         }
 
-        // 결제수단을 요청 본문에서 추출 (백엔드가 받은 값과 동일 보장)
-        const paymentMethod = extractPaymentMethodFromRequest(input, init);
+        // 결제수단 결정 우선순위:
+        //   1. _local.paymentMethod (nicepay_* 간편결제 — 템플릿이 serverPaymentMethod='card' 로 교체해도 원본 보존)
+        //   2. 요청 본문에서 추출한 originalPaymentMethod (easy pay 인 경우)
+        //   3. 요청 본문의 현재 payment_method (일반 결제)
+        const localPaymentMethod = (window as unknown as Record<string, unknown>).__templateApp;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const localState = (localPaymentMethod as any)?.globalState?._local;
+        const localNicepayMethod: string | undefined =
+            typeof localState?.paymentMethod === 'string' && localState.paymentMethod.startsWith('nicepay_')
+                ? localState.paymentMethod
+                : undefined;
+
+        const paymentMethod = localNicepayMethod ?? (isEasyPay ? originalPaymentMethod : extractPaymentMethodFromRequest(init));
 
         logger.info('intercepted order create response — opening PG popup', { paymentMethod });
 
-        // 1) 결제창 호출 (비동기 — 팝업이 뜨도록 fire-and-forget)
-        //    실패 시 requestPaymentHandler 내부에서 isSubmittingOrder=false 처리됨
         void requestPaymentHandler({
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             params: { pgPaymentData: pgPaymentData as any, paymentMethod },
         });
 
-        // 2) 응답 mutate — 템플릿의 navigate fallback 을 무력화
-        //    - requires_pg_payment: false  (혹시 다른 곳에서 참조해도 안전)
-        //    - redirect_url: 현재 URL       (navigate-to-self → 실질적 이동 없음)
         const mutatedBody: OrderCreateResponseBody = {
             ...body,
             data: {

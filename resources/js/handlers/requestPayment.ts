@@ -263,7 +263,9 @@ export async function requestPaymentHandler(action: PaymentAction, _context?: un
         }
 
         // 에스크로 결제: TransType=1, GoodsCl=1 (실물 상품 전용)
-        if (config.useEscrow) {
+        // 간편결제(nicepay_*)는 에스크로 미지원 — NicePay SDK가 차단하므로 건너뜀
+        const isEasyPay = typeof paymentMethod === 'string' && paymentMethod.startsWith('nicepay_');
+        if (config.useEscrow && !isEasyPay) {
             formFields.TransType = '1';
             formFields.GoodsCl = '1';
         }
