@@ -1,0 +1,75 @@
+{
+    "target_layout": "admin_ecommerce_order_list",
+    "data_sources": [
+        {
+            "id": "nicepay_test_map",
+            "type": "api",
+            "endpoint": "/api/plugins/sirsoft-pay-nicepayments/admin/orders/test-mode-map",
+            "method": "GET",
+            "auto_fetch": true,
+            "auth_required": true,
+            "loading_strategy": "progressive"
+        }
+    ],
+    "injections": [
+        {
+            "target_id": "data_table_section",
+            "position": "prepend_child",
+            "components": [
+                {
+                    "type": "basic",
+                    "name": "Div",
+                    "if": "{{(orders?.data?.data ?? []).some(o => nicepay_test_map.data?.[o.order_number] === true)}}",
+                    "props": { "className": "mb-4 px-3 py-2.5 bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-700 rounded-lg" },
+                    "children": [
+                        {
+                            "type": "basic",
+                            "name": "Div",
+                            "props": { "className": "flex items-center gap-2 mb-2" },
+                            "children": [
+                                {
+                                    "type": "basic",
+                                    "name": "Icon",
+                                    "props": { "name": "flask-conical", "className": "w-4 h-4 text-orange-600 dark:text-orange-400 flex-shrink-0" }
+                                },
+                                {
+                                    "type": "basic",
+                                    "name": "Span",
+                                    "props": { "className": "text-sm font-semibold text-orange-800 dark:text-orange-300" },
+                                    "text": "$t:sirsoft-pay-nicepayments.admin.test_mode_orders_in_list"
+                                }
+                            ]
+                        },
+                        {
+                            "type": "basic",
+                            "name": "Div",
+                            "props": { "className": "flex flex-wrap gap-1.5" },
+                            "children": [
+                                {
+                                    "type": "basic",
+                                    "name": "Button",
+                                    "iteration": {
+                                        "source": "{{(orders?.data?.data ?? []).filter(o => nicepay_test_map.data?.[o.order_number] === true)}}",
+                                        "item_var": "testOrder"
+                                    },
+                                    "props": {
+                                        "type": "button",
+                                        "className": "inline-flex items-center px-2 py-0.5 rounded text-xs font-medium font-mono bg-orange-100 text-orange-800 dark:bg-orange-900/40 dark:text-orange-300 hover:bg-orange-200 dark:hover:bg-orange-900/60 transition-colors"
+                                    },
+                                    "text": "{{testOrder.order_number}}",
+                                    "actions": [
+                                        {
+                                            "type": "click",
+                                            "handler": "navigate",
+                                            "params": { "path": "/admin/ecommerce/orders/{{testOrder.order_number}}" }
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

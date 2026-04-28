@@ -20,6 +20,37 @@
     ],
     "injections": [
         {
+            "target_id": "sticky_header_container",
+            "position": "append_child",
+            "components": [
+                {
+                    "type": "basic",
+                    "name": "Div",
+                    "if": "{{nicepay_status.data?._is_test_mode === true}}",
+                    "props": { "className": "mx-6 mb-3 px-3 py-2 bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-700 rounded-lg flex items-center gap-2" },
+                    "children": [
+                        {
+                            "type": "basic",
+                            "name": "Icon",
+                            "props": { "name": "flask-conical", "className": "w-4 h-4 text-orange-600 dark:text-orange-400 flex-shrink-0" }
+                        },
+                        {
+                            "type": "basic",
+                            "name": "Span",
+                            "props": { "className": "text-sm font-semibold text-orange-800 dark:text-orange-300" },
+                            "text": "$t:sirsoft-pay-nicepayments.admin.test_mode_badge"
+                        },
+                        {
+                            "type": "basic",
+                            "name": "Span",
+                            "props": { "className": "text-sm text-orange-700 dark:text-orange-400" },
+                            "text": "$t:sirsoft-pay-nicepayments.admin.test_mode_order_notice"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "target_id": "tab_content_area",
             "position": "prepend_child",
             "components": [

@@ -95,7 +95,9 @@
         "escrow_register_button": "Register Delivery",
         "escrow_register_success": "Escrow delivery has been registered.",
         "escrow_register_error": "Failed to register escrow delivery.",
-        "test_mode_badge": "TEST"
+        "test_mode_badge": "TEST",
+        "test_mode_order_notice": "This order was processed in test mode.",
+        "test_mode_orders_in_list": "Test payment orders included"
     },
     "easy_pay": {
         "section_title": "Easy Pay"

@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use Plugins\Sirsoft\Pay\Nicepayments\Controllers\AdminEscrowController;
+use Plugins\Sirsoft\Pay\Nicepayments\Controllers\AdminOrderListController;
 use Plugins\Sirsoft\Pay\Nicepayments\Controllers\AdminTransactionController;
 use Plugins\Sirsoft\Pay\Nicepayments\Controllers\AdminVbankNotificationController;
 use Plugins\Sirsoft\Pay\Nicepayments\Controllers\AdminVbankRefundController;
@@ -40,6 +41,10 @@ Route::prefix('admin')->name('admin.')->middleware(['auth:sanctum', 'admin'])->g
     // 주문번호로 나이스페이 거래 조회 (자동 조회용)
     Route::get('/orders/{orderNumber}/transaction-status', [AdminTransactionController::class, 'queryByOrder'])
         ->name('orders.transaction-status');
+
+    // 테스트 모드 주문 맵 조회 (주문 목록 배지용)
+    Route::get('/orders/test-mode-map', [AdminOrderListController::class, 'testModeMap'])
+        ->name('orders.test-mode-map');
 
     // 가상계좌 입금 완료 건 환불 (환불 계좌 정보 필요)
     Route::post('/vbank-refund', [AdminVbankRefundController::class, 'refund'])
