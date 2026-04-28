@@ -226,21 +226,17 @@ export async function requestPaymentHandler(action: PaymentAction, _context?: un
         const callbackUrl = window.location.origin + CALLBACK_PATH;
 
         // 4. 결제 폼 생성
+        // 간편결제는 PayMethod='CARD' + DirectShowOpt='CARD' + 방식별 directive 필드 조합.
+        // PayMethod에 'KAKAOPAY' 등을 직접 넣으면 [W004] 발생 — gnu5 orderform.js 동일 방식.
+        const isEasyPay = typeof paymentMethod === 'string' && paymentMethod.startsWith('nicepay_');
+
         const payMethodMap: Record<string, string> = {
             card: 'CARD',
             vbank: 'VBANK',
             bank: 'BANK',
             phone: 'CELLPHONE',
-            nicepay_naverpay: 'NAVERPAY',
-            nicepay_kakaopay: 'KAKAOPAY',
-            nicepay_samsungpay: 'SAMSUNGPAY',
-            nicepay_applepay: 'APPLEPAY',
-            nicepay_payco: 'PAYCO',
-            nicepay_skpay: 'SKPAY',
-            nicepay_ssgpay: 'SSGPAY',
-            nicepay_lpay: 'LPAY',
         };
-        const payMethod = payMethodMap[paymentMethod ?? 'card'] ?? 'CARD';
+        const payMethod = isEasyPay ? 'CARD' : (payMethodMap[paymentMethod ?? 'card'] ?? 'CARD');
 
         const formFields: Record<string, string> = {
             PayMethod: payMethod,
@@ -255,7 +251,11 @@ export async function requestPaymentHandler(action: PaymentAction, _context?: un
             EdiDate: signData.ediDate,
             SignData: signData.signData,
             CharSet: 'utf-8',
-            GoodsCl: '1',  // 실물(1) 기본값 — gnu5 동일 방식
+            GoodsCl: '1',
+            DirectShowOpt: '',
+            DirectEasyPay: '',
+            NicepayReserved: '',
+            EasyPayMethod: '',
         };
 
         // 휴대폰결제: 상품 유형 덮어쓰기 (0:디지털컨텐츠, 1:실물)
@@ -263,12 +263,41 @@ export async function requestPaymentHandler(action: PaymentAction, _context?: un
             formFields.GoodsCl = pgPaymentData.goods_cl ?? '1';
         }
 
-        // TransType: NicePay가 항상 요구하는 필드 — 누락 시 [W004] 오류 발생
-        // 간편결제(nicepay_*)는 에스크로 미지원이므로 반드시 '0'
-        // 에스크로 활성 + 일반결제일 때만 '1', 그 외 모든 경우 '0'
-        const isEasyPay = typeof paymentMethod === 'string' && paymentMethod.startsWith('nicepay_');
+        // TransType: 에스크로 활성 + 일반결제 → '1', 그 외(간편결제 포함) → '0'
         const useEscrow = config.useEscrow && !isEasyPay;
         formFields.TransType = useEscrow ? '1' : '0';
+
+        // 간편결제 directive 필드 설정 — gnu5 orderform.js switch(settle_method==='간편결제') 동일
+        if (isEasyPay) {
+            formFields.DirectShowOpt = 'CARD';
+            switch (paymentMethod) {
+                case 'nicepay_naverpay':
+                    formFields.DirectEasyPay = 'E020';
+                    formFields.EasyPayMethod = 'E020=CARD';
+                    break;
+                case 'nicepay_kakaopay':
+                    formFields.NicepayReserved = 'DirectKakao=Y';
+                    break;
+                case 'nicepay_samsungpay':
+                    formFields.DirectEasyPay = 'E021';
+                    break;
+                case 'nicepay_applepay':
+                    formFields.DirectEasyPay = 'E025';
+                    break;
+                case 'nicepay_payco':
+                    formFields.NicepayReserved = 'DirectPayco=Y';
+                    break;
+                case 'nicepay_skpay':
+                    formFields.NicepayReserved = 'DirectPay11=Y';
+                    break;
+                case 'nicepay_ssgpay':
+                    formFields.DirectEasyPay = 'E007';
+                    break;
+                case 'nicepay_lpay':
+                    formFields.DirectEasyPay = 'E018';
+                    break;
+            }
+        }
 
         // 4-2. 과세/비과세 금액 조회 (optional — 실패해도 결제 진행)
         try {
