@@ -255,20 +255,20 @@ export async function requestPaymentHandler(action: PaymentAction, _context?: un
             EdiDate: signData.ediDate,
             SignData: signData.signData,
             CharSet: 'utf-8',
+            GoodsCl: '1',  // 실물(1) 기본값 — gnu5 동일 방식
         };
 
-        // 휴대폰결제: 상품 유형 필수 (0:디지털컨텐츠, 1:실물)
+        // 휴대폰결제: 상품 유형 덮어쓰기 (0:디지털컨텐츠, 1:실물)
         if (payMethod === 'CELLPHONE') {
             formFields.GoodsCl = pgPaymentData.goods_cl ?? '1';
         }
 
-        // 에스크로 결제: TransType=1, GoodsCl=1 (실물 상품 전용)
-        // 간편결제(nicepay_*)는 에스크로 미지원 — NicePay SDK가 차단하므로 건너뜀
+        // TransType: NicePay가 항상 요구하는 필드 — 누락 시 [W004] 오류 발생
+        // 간편결제(nicepay_*)는 에스크로 미지원이므로 반드시 '0'
+        // 에스크로 활성 + 일반결제일 때만 '1', 그 외 모든 경우 '0'
         const isEasyPay = typeof paymentMethod === 'string' && paymentMethod.startsWith('nicepay_');
-        if (config.useEscrow && !isEasyPay) {
-            formFields.TransType = '1';
-            formFields.GoodsCl = '1';
-        }
+        const useEscrow = config.useEscrow && !isEasyPay;
+        formFields.TransType = useEscrow ? '1' : '0';
 
         // 4-2. 과세/비과세 금액 조회 (optional — 실패해도 결제 진행)
         try {
