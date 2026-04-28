@@ -94,7 +94,8 @@
         "escrow_register_name": "Registrant Name",
         "escrow_register_button": "Register Delivery",
         "escrow_register_success": "Escrow delivery has been registered.",
-        "escrow_register_error": "Failed to register escrow delivery."
+        "escrow_register_error": "Failed to register escrow delivery.",
+        "test_mode_badge": "TEST"
     },
     "easy_pay": {
         "section_title": "Easy Pay"
@@ -103,7 +104,8 @@
         "receipt_label": "Receipt",
         "view_receipt": "View Receipt",
         "view_cash_receipt": "View Cash Receipt",
-        "easy_pay_label": "Easy Pay"
+        "easy_pay_label": "Easy Pay",
+        "test_mode_badge": "TEST"
     },
     "messages": {
         "refund": {

@@ -33,17 +33,20 @@ class UserReceiptController
         }
 
         $cashReceiptUrl = null;
+        $isTestMode = false;
         if ($payment->payment_meta) {
             $meta = json_decode($payment->payment_meta, true);
             $rcptTid = $meta['rcpt_tid'] ?? ($meta['pg_raw_response']['RcptTID'] ?? null);
             if ($rcptTid) {
                 $cashReceiptUrl = self::RECEIPT_BASE_URL . '?type=1&TID=' . rawurlencode($rcptTid);
             }
+            $isTestMode = (bool) ($meta['is_test_mode'] ?? false);
         }
 
         return response()->json([
             'receipt_url' => $receiptUrl,
             'cash_receipt_url' => $cashReceiptUrl,
+            'is_test_mode' => $isTestMode,
         ]);
     }
 }

@@ -63,6 +63,7 @@ class AdminTransactionController extends AdminBaseController
                 $meta = json_decode($localPayment->payment_meta, true);
                 $result['EscrowYN'] = $meta['pg_raw_response']['EscrowYN']
                     ?? ($result['EscrowYN'] ?? 'N');
+                $result['_is_test_mode'] = (bool) ($meta['is_test_mode'] ?? false);
             }
 
             return ResponseHelper::success('messages.success', $result);

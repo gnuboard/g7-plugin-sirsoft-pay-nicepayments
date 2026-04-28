@@ -507,6 +507,13 @@
                                                                     "text": "$t:sirsoft-pay-nicepayments.admin.escrow_badge"
                                                                 }
                                                             ]
+                                                        },
+                                                        {
+                                                            "type": "basic",
+                                                            "name": "Span",
+                                                            "if": "{{(_local._nicepayResult ?? nicepay_status.data)?._is_test_mode === true}}",
+                                                            "props": { "className": "inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300" },
+                                                            "text": "$t:sirsoft-pay-nicepayments.admin.test_mode_badge"
                                                         }
                                                     ]
                                                 },
