@@ -11,23 +11,10 @@ const METHOD_TO_TEXT: Record<string, string> = {
     nicepay_lpay:       'L.pay',
 };
 
-// ring-white: 버튼 배경색과 무관하게 항상 눈에 띄는 흰색 테두리
-const RING_MAP: Record<string, string[]> = {
-    nicepay_naverpay:   ['ring-2', 'ring-offset-2', 'ring-white', 'shadow-lg'],
-    nicepay_kakaopay:   ['ring-2', 'ring-offset-2', 'ring-white', 'shadow-lg'],
-    nicepay_samsungpay: ['ring-2', 'ring-offset-2', 'ring-white', 'shadow-lg'],
-    nicepay_applepay:   ['ring-2', 'ring-offset-2', 'ring-white', 'shadow-lg'],
-    nicepay_payco:      ['ring-2', 'ring-offset-2', 'ring-white', 'shadow-lg'],
-    nicepay_skpay:      ['ring-2', 'ring-offset-2', 'ring-white', 'shadow-lg'],
-    nicepay_ssgpay:     ['ring-2', 'ring-offset-2', 'ring-white', 'shadow-lg'],
-    nicepay_lpay:       ['ring-2', 'ring-offset-2', 'ring-white', 'shadow-lg'],
-};
-
-const ALL_RING_CLASSES = [...new Set(Object.values(RING_MAP).flat())];
+// 흰색 내부 ring + 어두운 외부 ring으로 어떤 버튼 배경색에도 선택 상태가 확실히 보임
+const SELECTED_SHADOW = '0 0 0 2px #ffffff, 0 0 0 5px rgba(0,0,0,0.55)';
 
 function getEasyPayButtonContainer(): Element | null {
-    // Extension이 #nicepay_checkout_payment_section 안에 주입됨
-    // "간편결제" 텍스트 단락 다음 형제 div가 버튼 컨테이너
     const section = document.getElementById('nicepay_checkout_payment_section');
     if (!section) return null;
     const paras = section.querySelectorAll('p');
@@ -45,9 +32,12 @@ function updateEasyPayButtonStyles(selectedMethod: string): void {
 
     const selectedText = METHOD_TO_TEXT[selectedMethod];
     container.querySelectorAll<HTMLButtonElement>('button').forEach(btn => {
-        ALL_RING_CLASSES.forEach(cls => btn.classList.remove(cls));
         if (btn.textContent?.trim() === selectedText) {
-            (RING_MAP[selectedMethod] ?? []).forEach(cls => btn.classList.add(cls));
+            btn.style.boxShadow = SELECTED_SHADOW;
+            btn.style.outline = 'none';
+        } else {
+            btn.style.boxShadow = '';
+            btn.style.outline = '';
         }
     });
 }
@@ -62,7 +52,6 @@ export function setPaymentMethodHandler(action: any): void {
         serverPaymentMethod: isEasyPay ? 'card' : paymentMethod,
     });
 
-    // Extension 컴포넌트는 React 반응형 렌더링 밖에 있으므로 DOM 직접 업데이트
     if (isEasyPay) {
         updateEasyPayButtonStyles(paymentMethod);
     }
