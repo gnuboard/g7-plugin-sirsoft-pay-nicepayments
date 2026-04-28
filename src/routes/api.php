@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use Plugins\Sirsoft\Pay\Nicepayments\Controllers\AdminEscrowController;
 use Plugins\Sirsoft\Pay\Nicepayments\Controllers\AdminTransactionController;
+use Plugins\Sirsoft\Pay\Nicepayments\Controllers\AdminVbankNotificationController;
 use Plugins\Sirsoft\Pay\Nicepayments\Controllers\AdminVbankRefundController;
 use Plugins\Sirsoft\Pay\Nicepayments\Controllers\UserReceiptController;
 
@@ -47,4 +48,10 @@ Route::prefix('admin')->name('admin.')->middleware(['auth:sanctum', 'admin'])->g
     // 에스크로 배송 등록
     Route::post('/escrow/register-delivery', [AdminEscrowController::class, 'registerDelivery'])
         ->name('escrow.register-delivery');
+
+    // 가상계좌 입금통보 이력 조회 — 어드민 주문 상세 패널에서 사용.
+    // OrderPaymentResource 가 payment_meta 를 노출하지 않으므로, 어드민 전용으로 통보 이력만
+    // 추출해 반환 (PII 는 sanitize 됨).
+    Route::get('/orders/{orderNumber}/vbank-notifications', [AdminVbankNotificationController::class, 'show'])
+        ->name('orders.vbank-notifications');
 });
