@@ -11,15 +11,16 @@ const METHOD_TO_TEXT: Record<string, string> = {
     nicepay_lpay:       'L.pay',
 };
 
+// ring-white: 버튼 배경색과 무관하게 항상 눈에 띄는 흰색 테두리
 const RING_MAP: Record<string, string[]> = {
-    nicepay_naverpay:   ['ring-2', 'ring-offset-1', 'ring-green-500',  'shadow-md'],
-    nicepay_kakaopay:   ['ring-2', 'ring-offset-1', 'ring-yellow-400', 'shadow-md'],
-    nicepay_samsungpay: ['ring-2', 'ring-offset-1', 'ring-blue-700',   'shadow-md'],
-    nicepay_applepay:   ['ring-2', 'ring-offset-1', 'ring-gray-900',   'shadow-md'],
-    nicepay_payco:      ['ring-2', 'ring-offset-1', 'ring-red-500',    'shadow-md'],
-    nicepay_skpay:      ['ring-2', 'ring-offset-1', 'ring-orange-500', 'shadow-md'],
-    nicepay_ssgpay:     ['ring-2', 'ring-offset-1', 'ring-red-600',    'shadow-md'],
-    nicepay_lpay:       ['ring-2', 'ring-offset-1', 'ring-pink-700',   'shadow-md'],
+    nicepay_naverpay:   ['ring-2', 'ring-offset-2', 'ring-white', 'shadow-lg'],
+    nicepay_kakaopay:   ['ring-2', 'ring-offset-2', 'ring-white', 'shadow-lg'],
+    nicepay_samsungpay: ['ring-2', 'ring-offset-2', 'ring-white', 'shadow-lg'],
+    nicepay_applepay:   ['ring-2', 'ring-offset-2', 'ring-white', 'shadow-lg'],
+    nicepay_payco:      ['ring-2', 'ring-offset-2', 'ring-white', 'shadow-lg'],
+    nicepay_skpay:      ['ring-2', 'ring-offset-2', 'ring-white', 'shadow-lg'],
+    nicepay_ssgpay:     ['ring-2', 'ring-offset-2', 'ring-white', 'shadow-lg'],
+    nicepay_lpay:       ['ring-2', 'ring-offset-2', 'ring-white', 'shadow-lg'],
 };
 
 const ALL_RING_CLASSES = [...new Set(Object.values(RING_MAP).flat())];
