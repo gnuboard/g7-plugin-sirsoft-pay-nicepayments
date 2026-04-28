@@ -26,10 +26,32 @@ class AdminTransactionController extends AdminBaseController
             return ResponseHelper::error('messages.failed', 422, ['tid' => ['TID를 입력하세요.']]);
         }
 
+        return $this->queryByTid($tid);
+    }
+
+    public function queryByOrder(string $orderNumber): JsonResponse
+    {
+        $payment = DB::table('ecommerce_order_payments')
+            ->join('ecommerce_orders', 'ecommerce_orders.id', '=', 'ecommerce_order_payments.order_id')
+            ->where('ecommerce_orders.order_number', $orderNumber)
+            ->whereNotNull('ecommerce_order_payments.transaction_id')
+            ->where('ecommerce_order_payments.transaction_id', '!=', '')
+            ->whereIn('ecommerce_order_payments.pg_provider', ['nicepayments', 'nicepay'])
+            ->select(['ecommerce_order_payments.transaction_id'])
+            ->first();
+
+        if (!$payment) {
+            return ResponseHelper::success('messages.success', null);
+        }
+
+        return $this->queryByTid($payment->transaction_id);
+    }
+
+    private function queryByTid(string $tid): JsonResponse
+    {
         try {
             $result = $this->apiService->queryTransaction($tid);
 
-            // 로컬 DB에서 에스크로 여부 조회하여 병합
             $localPayment = DB::table('ecommerce_order_payments')
                 ->where('transaction_id', $tid)
                 ->select(['is_escrow', 'payment_meta'])
@@ -37,7 +59,6 @@ class AdminTransactionController extends AdminBaseController
 
             $result['_local_is_escrow'] = (bool) ($localPayment?->is_escrow ?? false);
 
-            // payment_meta의 pg_raw_response에서도 EscrowYN 확인
             if ($localPayment?->payment_meta) {
                 $meta = json_decode($localPayment->payment_meta, true);
                 $result['EscrowYN'] = $meta['pg_raw_response']['EscrowYN']
