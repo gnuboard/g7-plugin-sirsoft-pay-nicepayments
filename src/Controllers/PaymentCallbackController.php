@@ -291,31 +291,54 @@ class PaymentCallbackController
      * 가상계좌 입금 통보 처리
      *
      * POST /plugins/sirsoft-pay-nicepayments/payment/vbank-notify
-     * (나이스페이먼츠 서버 → 우리 서버, CSRF 제외)
+     * 공식 매뉴얼: https://developers.nicepay.co.kr/manual-noti.php
+     *
+     * 동작:
+     *   - ResultCode === '4110' 입금완료 통보만 결제완료 처리
+     *   - 그 외 ResultCode (계좌발급, 입금취소 등) 는 로깅만 하고 OK 응답
+     *   - 어떤 결과든 200 + 정확히 "OK" (text/plain) 를 돌려줘야 NicePay 가 재시도하지 않음
+     *   - 한글 인코딩(EUC-KR) 은 VbankNotifyRequest::prepareForValidation 에서 UTF-8 로 변환됨
+     *
+     * 공식 spec 에 입금통보 Signature 가 없어 위변조 검증은 하지 않으며, 대신:
+     *   - 발송 IP 화이트리스트 (VbankNotifyRequest::authorize)
+     *   - TID/MOID/Amt 가 우리 DB 의 임시 발급 정보와 일치하는지 비교
+     *   - 동일 TID 중복 처리 방지 (행 잠금)
+     *   세 단계로 위변조/재처리 방어.
      */
     public function vbankNotify(VbankNotifyRequest $request): Response
     {
         $validated = $request->validated();
 
-        $tid = $validated['TID'];
-        $moid = $validated['Moid'];
+        $tid = (string) $validated['TID'];
+        $moid = (string) $validated['MOID'];
         $amt = (int) $validated['Amt'];
-        $vbankResult = (string) $validated['VbankResult'];
-        $signature = $validated['Signature'] ?? null;
+        $resultCode = (string) $validated['ResultCode'];
 
-        // 서명 검증 (입금 통보 위변조 감지)
-        if ($signature !== null && ! $this->apiService->verifyVbankNotifySignature($tid, $amt, $signature)) {
-            Log::critical('NicePayments: vbank notify signature mismatch', [
-                'tid' => $tid,
-                'moid' => $moid,
-                'ip' => $request->ip(),
-            ]);
+        // 입금완료 통보 (4110) 만 결제완료 처리.
+        // 4100/계좌발급은 authCallback 에서 이미 처리됐고, 그 외 코드는 입금취소/오류 등.
+        $isDeposited = $resultCode === '4110';
+        $isCancellation = ! empty($validated['CancelDate'])
+            || in_array((string) ($validated['StateCd'] ?? ''), ['1', '2'], true);
 
-            return response('FAIL', 200)->header('Content-Type', 'text/plain');
-        }
+        // 통보 종류 라벨 (어드민/로그용)
+        $notiType = $isDeposited ? 'deposited' : ($isCancellation ? 'cancelled' : 'other');
 
-        if ($vbankResult !== '1') {
-            Log::warning('NicePayments: vbank deposit cancelled', ['tid' => $tid, 'moid' => $moid]);
+        if (! $isDeposited) {
+            Log::info(
+                'NicePayments: vbank notify ' . ($isCancellation ? 'cancellation' : 'non-deposit'),
+                [
+                    'tid' => $tid,
+                    'moid' => $moid,
+                    'result_code' => $resultCode,
+                    'state_cd' => $validated['StateCd'] ?? null,
+                    'cancel_date' => $validated['CancelDate'] ?? null,
+                    'result_msg' => $validated['ResultMsg'] ?? null,
+                ]
+            );
+
+            // 입금완료가 아니어도 어드민이 통보 시점/내용을 확인할 수 있도록 이력 저장.
+            // 4100(계좌발급)·취소·재통보 모두 누적되어 어드민 패널에서 timeline 으로 보임.
+            $this->recordVbankNotification($moid, $tid, $amt, $resultCode, $notiType, $validated);
 
             return response('OK', 200)->header('Content-Type', 'text/plain');
         }
@@ -341,14 +364,30 @@ class PaymentCallbackController
                     return;
                 }
 
+                // 기존 통보 이력 보존 — completePayment 가 payment_meta 를 통째로 교체할 수 있어
+                // 미리 머지한 메타를 만들어 전달
+                $existingNotifications = is_array($payment?->payment_meta['vbank_notifications'] ?? null)
+                    ? $payment->payment_meta['vbank_notifications']
+                    : [];
+
+                $newEntry = $this->buildVbankNotificationEntry('4110', $amt, 'deposited', $validated);
+                $allNotifications = array_merge($existingNotifications, [$newEntry]);
+
                 $this->orderService->completePayment($order, [
                     'transaction_id' => $tid,
                     'payment_meta' => [
-                        'result_code' => '4100',
-                        'vbank_auth_date' => $validated['VbankAuthDate'] ?? null,
+                        'result_code' => '4110',
+                        'auth_date' => $validated['AuthDate'] ?? null,
+                        'auth_code' => $validated['AuthCode'] ?? null,
                         'vbank_num' => $validated['VbankNum'] ?? null,
                         'vbank_name' => $validated['VbankName'] ?? null,
+                        'vbank_input_name' => $validated['VbankInputName'] ?? null,
+                        'fn_cd' => $validated['FnCd'] ?? null,
+                        'fn_name' => $validated['FnName'] ?? null,
                         'pg_raw_response' => $this->sanitizePgResponse($validated),
+                        // 어드민 표시용 통보 이력 (전체 누적)
+                        'vbank_notifications' => $allNotifications,
+                        'vbank_notification_summary' => $this->buildNotificationSummary($allNotifications),
                     ],
                 ], $amt);
             });
@@ -356,7 +395,13 @@ class PaymentCallbackController
             if ($alreadyProcessed) {
                 Log::info('NicePayments: vbank notify - already processed', ['tid' => $tid, 'moid' => $moid]);
             } else {
-                Log::info('NicePayments: vbank deposit confirmed', ['tid' => $tid, 'moid' => $moid, 'amt' => $amt]);
+                Log::info('NicePayments: vbank deposit confirmed', [
+                    'tid' => $tid,
+                    'moid' => $moid,
+                    'amt' => $amt,
+                    'depositor' => $validated['VbankInputName'] ?? null,
+                    'auth_date' => $validated['AuthDate'] ?? null,
+                ]);
             }
 
             return response('OK', 200)->header('Content-Type', 'text/plain');
@@ -401,6 +446,126 @@ class PaymentCallbackController
         $piiFields = ['BuyerName', 'BuyerEmail', 'BuyerTel', 'CardNum'];
 
         return array_diff_key($response, array_flip($piiFields));
+    }
+
+    /**
+     * 입금통보 1건의 어드민 표시용 entry 생성.
+     *
+     * 어드민 패널에서 timeline 형태로 보여줄 핵심 필드만 추려둠. raw 는 전체 보존.
+     */
+    private function buildVbankNotificationEntry(
+        string $resultCode,
+        int $amt,
+        string $type,
+        array $validated
+    ): array {
+        return [
+            'received_at' => now()->toIso8601String(),
+            'type' => $type, // 'deposited' | 'cancelled' | 'other'
+            'result_code' => $resultCode,
+            'result_msg' => $validated['ResultMsg'] ?? null,
+            'state_cd' => $validated['StateCd'] ?? null,
+            'amt' => $amt,
+            'tid' => $validated['TID'] ?? null,
+            'auth_date' => $validated['AuthDate'] ?? null,
+            'auth_code' => $validated['AuthCode'] ?? null,
+            'depositor' => $validated['VbankInputName'] ?? null,
+            'vbank_num' => $validated['VbankNum'] ?? null,
+            'vbank_name' => $validated['VbankName'] ?? null,
+            'cancel_date' => $validated['CancelDate'] ?? null,
+            'raw' => $this->sanitizePgResponse($validated),
+        ];
+    }
+
+    /**
+     * 입금완료가 아닌 통보 (계좌발급/취소/오류/재통보) 를 payment_meta 에 누적.
+     *
+     * 어드민이 "언제 어떤 통보가 왔는지" 추적할 수 있도록 모든 이벤트를 기록.
+     * 주문/결제가 없으면 조용히 skip (위변조 방어 — 우리 DB 에 없는 주문은 무시).
+     */
+    private function recordVbankNotification(
+        string $moid,
+        string $tid,
+        int $amt,
+        string $resultCode,
+        string $type,
+        array $validated
+    ): void {
+        try {
+            DB::transaction(function () use ($moid, $tid, $amt, $resultCode, $type, $validated): void {
+                $order = $this->orderService->findByOrderNumber($moid);
+                if (! $order) {
+                    return;
+                }
+
+                $payment = $order->payment()->lockForUpdate()->first();
+                if (! $payment) {
+                    return;
+                }
+
+                $existing = is_array($payment->payment_meta['vbank_notifications'] ?? null)
+                    ? $payment->payment_meta['vbank_notifications']
+                    : [];
+
+                $entry = $this->buildVbankNotificationEntry($resultCode, $amt, $type, $validated);
+                $existing[] = $entry;
+
+                $payment->payment_meta = array_merge($payment->payment_meta ?? [], [
+                    'vbank_notifications' => $existing,
+                    'vbank_notification_summary' => $this->buildNotificationSummary($existing),
+                ]);
+                $payment->save();
+            });
+        } catch (\Throwable $e) {
+            // 통보 이력 기록 실패가 OK 응답 자체를 막아 NicePay 재시도를 유발하지 않도록 swallow.
+            Log::warning('NicePayments: failed to record vbank notification entry', [
+                'moid' => $moid,
+                'tid' => $tid,
+                'error' => $e->getMessage(),
+            ]);
+        }
+    }
+
+    /**
+     * 어드민 패널 한 줄 요약용 데이터.
+     *
+     * - first_received_at / last_received_at: 첫·마지막 통보 시각
+     * - count: 누적 통보 횟수 (재통보 포함)
+     * - last_type / last_result_code: 마지막 통보 종류
+     * - deposited_at / cancelled_at: 입금완료·입금취소가 있었던 경우의 시각
+     */
+    private function buildNotificationSummary(array $notifications): array
+    {
+        if (empty($notifications)) {
+            return [];
+        }
+
+        $first = $notifications[0];
+        $last = end($notifications);
+        reset($notifications);
+
+        $depositedAt = null;
+        $cancelledAt = null;
+        foreach ($notifications as $n) {
+            if (($n['type'] ?? '') === 'deposited' && $depositedAt === null) {
+                $depositedAt = $n['received_at'] ?? null;
+            }
+            if (($n['type'] ?? '') === 'cancelled') {
+                $cancelledAt = $n['received_at'] ?? null;
+            }
+        }
+
+        return [
+            'count' => count($notifications),
+            'first_received_at' => $first['received_at'] ?? null,
+            'last_received_at' => $last['received_at'] ?? null,
+            'last_type' => $last['type'] ?? null,
+            'last_result_code' => $last['result_code'] ?? null,
+            'deposited_at' => $depositedAt,
+            'cancelled_at' => $cancelledAt,
+            'last_depositor' => $last['depositor'] ?? null,
+            'last_amt' => $last['amt'] ?? null,
+        ];
     }
 
     private function detectDevice(Request $request): string

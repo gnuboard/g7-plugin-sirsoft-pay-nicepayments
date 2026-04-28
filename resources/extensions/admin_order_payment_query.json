@@ -572,6 +572,215 @@
                             ]
                         }
                     ]
+                },
+                {
+                    "id": "nicepay_vbank_notifications_panel",
+                    "type": "basic",
+                    "name": "Div",
+                    "if": "{{(order.data?.payments?.filter(p => p.payment_method === 'vbank') ?? []).length > 0}}",
+                    "props": { "className": "card mt-4" },
+                    "children": [
+                        {
+                            "type": "basic",
+                            "name": "Div",
+                            "props": { "className": "flex items-center gap-2 mb-4" },
+                            "children": [
+                                { "type": "basic", "name": "Div", "props": { "className": "w-1.5 h-4 bg-emerald-500 rounded-full flex-shrink-0" } },
+                                {
+                                    "type": "basic", "name": "H3",
+                                    "props": { "className": "text-sm font-semibold text-gray-800 dark:text-gray-200" },
+                                    "text": "$t:sirsoft-pay-nicepayments.admin.vbank_noti_title"
+                                },
+                                {
+                                    "type": "basic", "name": "Span",
+                                    "props": { "className": "text-xs text-gray-400 dark:text-gray-500 hidden sm:inline" },
+                                    "text": "$t:sirsoft-pay-nicepayments.admin.vbank_noti_description"
+                                },
+                                {
+                                    "type": "basic",
+                                    "name": "Button",
+                                    "props": {
+                                        "disabled": "{{_local._vbankNotiLoading === true}}",
+                                        "className": "ml-auto flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-emerald-600 hover:bg-emerald-700 text-white rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                    },
+                                    "children": [
+                                        {
+                                            "type": "basic", "name": "Icon",
+                                            "if": "{{_local._vbankNotiLoading === true}}",
+                                            "props": { "name": "spinner", "className": "w-3 h-3 animate-spin" }
+                                        },
+                                        { "type": "basic", "name": "Span", "text": "$t:sirsoft-pay-nicepayments.admin.vbank_noti_query_button" }
+                                    ],
+                                    "actions": [
+                                        {
+                                            "type": "click",
+                                            "handler": "sequence",
+                                            "actions": [
+                                                {
+                                                    "handler": "setState",
+                                                    "params": { "target": "local", "_vbankNotiLoading": true, "_vbankNotiError": null }
+                                                },
+                                                {
+                                                    "handler": "apiCall",
+                                                    "auth_required": true,
+                                                    "target": "/api/plugins/sirsoft-pay-nicepayments/admin/orders/{{order.data?.order_number}}/vbank-notifications",
+                                                    "params": { "method": "GET" },
+                                                    "onSuccess": [
+                                                        {
+                                                            "handler": "setState",
+                                                            "params": {
+                                                                "target": "local",
+                                                                "_vbankNotiLoading": false,
+                                                                "_vbankNotiData": "{{$response.data}}"
+                                                            }
+                                                        }
+                                                    ],
+                                                    "onError": [
+                                                        {
+                                                            "handler": "setState",
+                                                            "params": {
+                                                                "target": "local",
+                                                                "_vbankNotiLoading": false,
+                                                                "_vbankNotiError": "$t:sirsoft-pay-nicepayments.admin.vbank_noti_load_error"
+                                                            }
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "type": "basic",
+                            "name": "P",
+                            "if": "{{!_local._vbankNotiData && !_local._vbankNotiLoading && !_local._vbankNotiError}}",
+                            "props": { "className": "text-xs text-gray-500 dark:text-gray-400 italic" },
+                            "text": "$t:sirsoft-pay-nicepayments.admin.vbank_noti_not_loaded"
+                        },
+                        {
+                            "type": "basic",
+                            "name": "P",
+                            "if": "{{_local._vbankNotiError}}",
+                            "props": { "className": "text-xs text-rose-600 dark:text-rose-400" },
+                            "text": "{{_local._vbankNotiError}}"
+                        },
+                        {
+                            "type": "basic",
+                            "name": "P",
+                            "if": "{{_local._vbankNotiData && (_local._vbankNotiData.notifications ?? []).length === 0}}",
+                            "props": { "className": "text-xs text-gray-500 dark:text-gray-400 italic" },
+                            "text": "$t:sirsoft-pay-nicepayments.admin.vbank_noti_empty"
+                        },
+                        {
+                            "type": "basic",
+                            "name": "Div",
+                            "if": "{{_local._vbankNotiData && (_local._vbankNotiData.notifications ?? []).length > 0}}",
+                            "props": { "className": "border border-gray-200 dark:border-gray-700 rounded-lg p-3" },
+                            "children": [
+                                {
+                                    "type": "basic",
+                                    "name": "Dl",
+                                    "props": { "className": "grid grid-cols-2 gap-x-4 gap-y-1.5 text-xs mb-3" },
+                                    "children": [
+                                        { "type": "basic", "name": "Dt", "props": { "className": "text-gray-500 dark:text-gray-400" }, "text": "$t:sirsoft-pay-nicepayments.admin.vbank_noti_count" },
+                                        { "type": "basic", "name": "Dd", "props": { "className": "text-gray-900 dark:text-gray-100 font-semibold" }, "text": "{{(_local._vbankNotiData.summary?.count ?? 0) + '회'}}" },
+                                        { "type": "basic", "name": "Dt", "props": { "className": "text-gray-500 dark:text-gray-400" }, "text": "$t:sirsoft-pay-nicepayments.admin.vbank_noti_first_at" },
+                                        { "type": "basic", "name": "Dd", "props": { "className": "text-gray-900 dark:text-gray-100 font-mono" }, "text": "{{$formatDate(_local._vbankNotiData.summary?.first_received_at, 'YYYY-MM-DD HH:mm:ss') ?? '-'}}" },
+                                        { "type": "basic", "name": "Dt", "props": { "className": "text-gray-500 dark:text-gray-400" }, "text": "$t:sirsoft-pay-nicepayments.admin.vbank_noti_last_at" },
+                                        { "type": "basic", "name": "Dd", "props": { "className": "text-gray-900 dark:text-gray-100 font-mono" }, "text": "{{$formatDate(_local._vbankNotiData.summary?.last_received_at, 'YYYY-MM-DD HH:mm:ss') ?? '-'}}" },
+                                        { "type": "basic", "name": "Dt", "props": { "className": "text-gray-500 dark:text-gray-400" }, "text": "$t:sirsoft-pay-nicepayments.admin.vbank_noti_deposited_at" },
+                                        { "type": "basic", "name": "Dd", "props": { "className": "text-emerald-700 dark:text-emerald-400 font-mono" }, "text": "{{$formatDate(_local._vbankNotiData.summary?.deposited_at, 'YYYY-MM-DD HH:mm:ss') ?? '-'}}" },
+                                        {
+                                            "type": "basic", "name": "Dt",
+                                            "if": "{{!!_local._vbankNotiData.summary?.cancelled_at}}",
+                                            "props": { "className": "text-gray-500 dark:text-gray-400" },
+                                            "text": "$t:sirsoft-pay-nicepayments.admin.vbank_noti_cancelled_at"
+                                        },
+                                        {
+                                            "type": "basic", "name": "Dd",
+                                            "if": "{{!!_local._vbankNotiData.summary?.cancelled_at}}",
+                                            "props": { "className": "text-rose-700 dark:text-rose-400 font-mono" },
+                                            "text": "{{$formatDate(_local._vbankNotiData.summary?.cancelled_at, 'YYYY-MM-DD HH:mm:ss')}}"
+                                        },
+                                        { "type": "basic", "name": "Dt", "props": { "className": "text-gray-500 dark:text-gray-400" }, "text": "$t:sirsoft-pay-nicepayments.admin.vbank_noti_depositor" },
+                                        { "type": "basic", "name": "Dd", "props": { "className": "text-gray-900 dark:text-gray-100" }, "text": "{{_local._vbankNotiData.summary?.last_depositor ?? '-'}}" }
+                                    ]
+                                },
+                                {
+                                    "type": "basic",
+                                    "name": "Div",
+                                    "props": { "className": "border-t border-gray-200 dark:border-gray-700 pt-3" },
+                                    "children": [
+                                        {
+                                            "type": "basic", "name": "P",
+                                            "props": { "className": "text-xs font-semibold text-gray-700 dark:text-gray-300 mb-2" },
+                                            "text": "$t:sirsoft-pay-nicepayments.admin.vbank_noti_history"
+                                        },
+                                        {
+                                            "type": "basic",
+                                            "name": "Div",
+                                            "props": { "className": "space-y-1.5 text-xs" },
+                                            "iteration": {
+                                                "source": "{{_local._vbankNotiData.notifications ?? []}}",
+                                                "item_var": "noti",
+                                                "index_var": "nIdx"
+                                            },
+                                            "children": [
+                                                {
+                                                    "type": "basic",
+                                                    "name": "Div",
+                                                    "props": { "className": "flex items-center gap-2 py-1 border-b border-gray-100 dark:border-gray-800 last:border-0" },
+                                                    "children": [
+                                                        {
+                                                            "type": "basic", "name": "Span",
+                                                            "if": "{{noti.type === 'deposited'}}",
+                                                            "props": { "className": "inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300 flex-shrink-0" },
+                                                            "text": "$t:sirsoft-pay-nicepayments.admin.vbank_noti_type_deposited"
+                                                        },
+                                                        {
+                                                            "type": "basic", "name": "Span",
+                                                            "if": "{{noti.type === 'cancelled'}}",
+                                                            "props": { "className": "inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-rose-100 text-rose-800 dark:bg-rose-900/30 dark:text-rose-300 flex-shrink-0" },
+                                                            "text": "$t:sirsoft-pay-nicepayments.admin.vbank_noti_type_cancelled"
+                                                        },
+                                                        {
+                                                            "type": "basic", "name": "Span",
+                                                            "if": "{{noti.type !== 'deposited' && noti.type !== 'cancelled'}}",
+                                                            "props": { "className": "inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300 flex-shrink-0" },
+                                                            "text": "$t:sirsoft-pay-nicepayments.admin.vbank_noti_type_other"
+                                                        },
+                                                        {
+                                                            "type": "basic", "name": "Span",
+                                                            "props": { "className": "font-mono text-gray-700 dark:text-gray-300" },
+                                                            "text": "{{$formatDate(noti.received_at, 'YYYY-MM-DD HH:mm:ss')}}"
+                                                        },
+                                                        {
+                                                            "type": "basic", "name": "Span",
+                                                            "props": { "className": "text-gray-500 dark:text-gray-400 font-mono" },
+                                                            "text": "{{noti.result_code ?? '-'}}"
+                                                        },
+                                                        {
+                                                            "type": "basic", "name": "Span",
+                                                            "props": { "className": "text-gray-700 dark:text-gray-300" },
+                                                            "text": "{{noti.result_msg ?? ''}}"
+                                                        },
+                                                        {
+                                                            "type": "basic", "name": "Span",
+                                                            "if": "{{noti.depositor}}",
+                                                            "props": { "className": "ml-auto text-gray-600 dark:text-gray-400" },
+                                                            "text": "{{noti.depositor + ' / ' + (noti.amt ?? 0).toLocaleString() + '원'}}"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
                 }
             ]
         }
