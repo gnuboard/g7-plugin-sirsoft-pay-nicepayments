@@ -39,7 +39,9 @@
         "easy_pay_payco": "PAYCO",
         "easy_pay_skpay": "11pay (SK Pay)",
         "easy_pay_ssgpay": "SSG Pay",
-        "easy_pay_lpay": "L.pay"
+        "easy_pay_lpay": "L.pay",
+        "easy_pay_allow_with_other_pg": "Allow with other PG",
+        "easy_pay_allow_with_other_pg_hint": "When enabled, NicePay easy pay buttons will appear on the checkout page even when another PG is set as the default payment provider."
     },
     "admin": {
         "transaction_query_title": "TID Transaction Query",

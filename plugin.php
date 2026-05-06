@@ -95,6 +95,15 @@ class Plugin extends AbstractPlugin
                     'en' => 'Enables escrow payment for buyer protection when selling physical goods. Delivery registration is required after escrow payment.',
                 ],
             ],
+            'easy_pay_allow_with_other_pg' => [
+                'type' => 'boolean',
+                'default' => false,
+                'label' => ['ko' => '타 PG와 사용가능함', 'en' => 'Allow with other PG'],
+                'hint' => [
+                    'ko' => '활성화하면, 다른 PG사가 기본 결제수단으로 설정된 경우에도 체크아웃 페이지에 나이스페이 간편결제 버튼이 표시됩니다.',
+                    'en' => 'When enabled, NicePay easy pay buttons will appear on the checkout page even when another PG is set as the default payment provider.',
+                ],
+            ],
             'easy_pay_naverpay' => [
                 'type' => 'boolean',
                 'default' => false,
@@ -157,6 +166,7 @@ class Plugin extends AbstractPlugin
             'redirect_success_url' => '/shop/orders/{orderId}/complete',
             'redirect_fail_url' => '/shop/checkout',
             'use_escrow' => false,
+            'easy_pay_allow_with_other_pg' => false,
             'easy_pay_naverpay' => false,
             'easy_pay_kakaopay' => false,
             'easy_pay_samsungpay' => false,

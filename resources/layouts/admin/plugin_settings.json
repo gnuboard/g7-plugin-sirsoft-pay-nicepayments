@@ -749,6 +749,36 @@
                                     {
                                         "type": "basic",
                                         "name": "Div",
+                                        "props": { "className": "flex items-center justify-between px-6 py-4 bg-blue-50 dark:bg-blue-900/20" },
+                                        "children": [
+                                            {
+                                                "type": "basic",
+                                                "name": "Div",
+                                                "children": [
+                                                    {
+                                                        "type": "basic",
+                                                        "name": "Label",
+                                                        "props": { "className": "block text-sm font-medium text-gray-700 dark:text-gray-300" },
+                                                        "text": "$t:sirsoft-pay-nicepayments.settings.easy_pay_allow_with_other_pg"
+                                                    },
+                                                    {
+                                                        "type": "basic",
+                                                        "name": "P",
+                                                        "props": { "className": "mt-0.5 text-xs text-gray-500 dark:text-gray-400" },
+                                                        "text": "$t:sirsoft-pay-nicepayments.settings.easy_pay_allow_with_other_pg_hint"
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "type": "composite",
+                                                "name": "Toggle",
+                                                "props": { "name": "easy_pay_allow_with_other_pg" }
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        "type": "basic",
+                                        "name": "Div",
                                         "props": { "className": "flex items-center justify-between px-6 py-4" },
                                         "children": [
                                             {
@@ -1103,6 +1133,7 @@
             "label": "$t:sirsoft-pay-nicepayments.settings.use_escrow",
             "hint": "$t:sirsoft-pay-nicepayments.settings.use_escrow_hint"
         },
+        "easy_pay_allow_with_other_pg": { "type": "boolean", "default": false, "label": "$t:sirsoft-pay-nicepayments.settings.easy_pay_allow_with_other_pg" },
         "easy_pay_naverpay": { "type": "boolean", "default": false, "label": "$t:sirsoft-pay-nicepayments.settings.easy_pay_naverpay" },
         "easy_pay_kakaopay": { "type": "boolean", "default": false, "label": "$t:sirsoft-pay-nicepayments.settings.easy_pay_kakaopay" },
         "easy_pay_samsungpay": { "type": "boolean", "default": false, "label": "$t:sirsoft-pay-nicepayments.settings.easy_pay_samsungpay" },

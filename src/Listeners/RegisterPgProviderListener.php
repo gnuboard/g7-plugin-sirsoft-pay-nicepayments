@@ -55,6 +55,12 @@ class RegisterPgProviderListener implements HookListenerInterface
         $easyPayKeys = ['NAVERPAY' => 'easy_pay_naverpay', 'KAKAOPAY' => 'easy_pay_kakaopay', 'SAMSUNGPAY' => 'easy_pay_samsungpay', 'APPLEPAY' => 'easy_pay_applepay', 'PAYCO' => 'easy_pay_payco', 'SKPAY' => 'easy_pay_skpay', 'SSGPAY' => 'easy_pay_ssgpay', 'LPAY' => 'easy_pay_lpay'];
         $enabledEasyPays = array_values(array_keys(array_filter($easyPayKeys, fn ($key) => (bool) ($settings[$key] ?? false))));
 
+        // "타 PG와 사용가능함"이 꺼져 있고 현재 기본 PG가 nicepayments가 아니면 간편결제 숨김
+        $allowWithOtherPg = (bool) ($settings['easy_pay_allow_with_other_pg'] ?? false);
+        if (! $allowWithOtherPg && ! $this->isNicepayDefaultPg()) {
+            $enabledEasyPays = [];
+        }
+
         return array_merge($config, [
             'mid' => $isTest
                 ? ($settings['test_mid'] ?? '')
@@ -65,6 +71,19 @@ class RegisterPgProviderListener implements HookListenerInterface
             'useEscrow' => (bool) ($settings['use_escrow'] ?? false),
             'enabled_easy_pays' => $enabledEasyPays,
         ]);
+    }
+
+    private function isNicepayDefaultPg(): bool
+    {
+        $path = storage_path('app/modules/sirsoft-ecommerce/settings/order_settings.json');
+
+        if (! file_exists($path)) {
+            return false;
+        }
+
+        $data = json_decode(file_get_contents($path), true);
+
+        return ($data['default_pg_provider'] ?? '') === 'nicepayments';
     }
 
     private function getPluginSettings(): array

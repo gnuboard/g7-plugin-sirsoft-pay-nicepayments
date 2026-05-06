@@ -39,7 +39,9 @@
         "easy_pay_payco": "PAYCO",
         "easy_pay_skpay": "11pay (SK페이)",
         "easy_pay_ssgpay": "SSG페이",
-        "easy_pay_lpay": "L.pay"
+        "easy_pay_lpay": "L.pay",
+        "easy_pay_allow_with_other_pg": "타 PG와 사용가능함",
+        "easy_pay_allow_with_other_pg_hint": "활성화하면, 다른 PG사가 기본 결제수단으로 설정된 경우에도 체크아웃 페이지에 나이스페이 간편결제 버튼이 표시됩니다."
     },
     "admin": {
         "transaction_query_title": "TID 거래 조회",
