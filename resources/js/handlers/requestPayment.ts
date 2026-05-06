@@ -117,24 +117,31 @@ const NICEPAY_MOBILE_ENDPOINT = 'https://web.nicepay.co.kr/v3/v3Payment.jsp';
 /**
  * 모바일 환경 판별.
  *
- * NicePay 의 PC SDK (`goPay`) 는 모바일 자동 감지를 하지 않으므로
- * UA 기반 분기가 필요. iOS/Android/Windows Phone 및 주요 in-app 브라우저 (KakaoTalk
- * NaverApp, Line, Instagram 등) 모두 모바일로 처리.
- *
- * 한 가지 더 — 화면 크기 보조 검사: 일부 데스크탑 사용자가 모바일 시뮬레이션을
- * 켜는 경우와 일부 태블릿 UA 가 모호한 경우를 함께 처리.
+ * 판별 우선순위:
+ * 1. navigator.userAgentData.mobile — 브라우저가 직접 판단하는 표준 API (Chrome/Edge 90+)
+ * 2. UA 문자열 정규식 — iOS/Android/Windows Phone 및 주요 인앱 브라우저
+ * 3. maxTouchPoints 보조 판단 — iPadOS처럼 데스크탑 UA를 보내는 터치 기기 처리
+ *    (Windows/Mac 데스크탑 터치스크린 오탐 방지를 위해 플랫폼 확인 병행)
  */
 function isMobileDevice(): boolean {
     if (typeof navigator === 'undefined') return false;
-    const ua = (navigator.userAgent || '').toLowerCase();
 
-    // 명시적 모바일 UA
-    const mobileUA = /android|iphone|ipad|ipod|windows phone|iemobile|blackberry|opera mini|mobile|kakaotalk|naver|line|instagram|fban|fbav/;
+    // 1단계: User Agent Client Hints (가장 정확, 브라우저가 직접 판단)
+    const nav = navigator as Navigator & { userAgentData?: { mobile: boolean } };
+    if (nav.userAgentData?.mobile !== undefined) {
+        return nav.userAgentData.mobile;
+    }
+
+    // 2단계: UA 문자열 파싱
+    const ua = (navigator.userAgent || '').toLowerCase();
+    const mobileUA = /android|iphone|ipod|windows phone|iemobile|blackberry|opera mini|mobile safari/;
     if (mobileUA.test(ua)) return true;
 
-    // 터치 + 좁은 화면 보조 검사 (iPadOS 가 데스크탑 UA 를 보내는 경우 등)
+    // 3단계: iPadOS 등 데스크탑 UA를 보내는 터치 기기 판별
+    // maxTouchPoints > 1 이면 실제 멀티터치 기기 (터치스크린 노트북은 보통 1)
+    // Windows/Mac 플랫폼이면 데스크탑으로 간주하여 오탐 방지
     const touchPoints = (navigator as Navigator & { maxTouchPoints?: number }).maxTouchPoints ?? 0;
-    if (touchPoints > 1 && Math.min(window.innerWidth, window.innerHeight) <= 1024) {
+    if (touchPoints > 1 && !ua.includes('windows') && !ua.includes('macintosh')) {
         return true;
     }
 
