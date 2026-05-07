@@ -198,7 +198,7 @@ export async function requestPaymentHandler(action: PaymentAction, _context?: un
 
             if (typeof window.goPay !== 'function') {
                 G7Core?.toast?.error?.('나이스페이먼츠 SDK를 불러올 수 없습니다. 잠시 후 다시 시도해주세요.');
-                G7Core?.state?.setLocal?.({ isSubmittingOrder: false });
+                G7Core?.state?.setLocal?.({ isSubmittingOrder: false, paymentMethod });
                 return;
             }
         }
@@ -366,7 +366,7 @@ export async function requestPaymentHandler(action: PaymentAction, _context?: un
                 if (!bodySnapshot.has(el)) el.remove();
             });
             if (form.parentNode) form.parentNode.removeChild(form);
-            G7Core?.state?.setLocal?.({ isSubmittingOrder: false });
+            G7Core?.state?.setLocal?.({ isSubmittingOrder: false, paymentMethod });
             if (resultMsg) G7Core?.toast?.error?.(resultMsg);
         };
 
@@ -384,7 +384,7 @@ export async function requestPaymentHandler(action: PaymentAction, _context?: un
 
     } catch (error: unknown) {
         console.error('[sirsoft-pay-nicepayments] requestPayment error', error);
-        G7Core?.state?.setLocal?.({ isSubmittingOrder: false });
+        G7Core?.state?.setLocal?.({ isSubmittingOrder: false, paymentMethod });
         G7Core?.toast?.error?.('결제 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
     }
 }
