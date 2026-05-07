@@ -105,6 +105,11 @@ export function installOrderResponseInterceptor(): void {
         const fetchFn = originalPaymentMethod ? browserFetch : originalFetch;
         const response = await fetchFn(input, modifiedInit);
 
+        // 2xx 응답만 처리 (4xx/5xx 오류 응답은 그대로 통과)
+        if (!response.ok) {
+            return response;
+        }
+
         // 응답 파싱 (clone으로 원본 스트림 보호)
         // 서버 응답 구조: { success, message, data: { order, requires_pg_payment, pg_provider, pg_payment_data, redirect_url } }
         let envelope: Record<string, unknown> | null = null;
@@ -115,7 +120,6 @@ export function installOrderResponseInterceptor(): void {
         }
 
         const responseData = (envelope?.data ?? envelope) as Record<string, unknown> | null;
-
         const isEasyPay = !!originalPaymentMethod;
 
         // 일반 결제: PG 결제가 필요 없으면 통과
@@ -145,11 +149,12 @@ export function installOrderResponseInterceptor(): void {
                 const orderName = (options?.length ?? 0) > 1
                     ? `${firstName} 외 ${(options?.length ?? 0) - 1}건`
                     : firstName;
-                const paymentInfo = orderData.payment as Record<string, unknown> | undefined;
                 pgPaymentData = {
                     order_number: orderData.order_number,
                     order_name: orderName,
-                    amount: paymentInfo?.paid_amount_local ?? orderData.total_amount,
+                    // paid_amount_local은 주문 생성 시점에 항상 0이므로 total_amount 직접 사용
+                    // total_amount는 "57000.00" 형태의 문자열이므로 정수로 변환
+                    amount: Math.floor(Number(orderData.total_amount ?? 0)),
                     currency: 'KRW',
                     customer_name: orderData.orderer_name ?? null,
                     customer_email: orderData.orderer_email ?? null,
@@ -177,8 +182,19 @@ export function installOrderResponseInterceptor(): void {
             params: { pgPaymentData: pgPaymentData as any, paymentMethod },
         });
 
+        // requires_pg_payment=true 였던 경우(기본 PG 설정됨): 결제창이 팝업으로 열리므로
+        //   checkout 페이지에 머물도록 redirect_url을 현재 URL로 덮어쓴다.
+        // requires_pg_payment=false 였던 경우(기본 PG 미설정, 간편결제):
+        //   temp order가 이미 삭제됐으므로 checkout으로 돌아오면 "주문서 없음" 오류가 발생.
+        //   원본 redirect_url(/shop/orders/.../complete)을 유지해 주문완료 페이지로 이동시킨다.
+        //   NicePayments 결제창(팝업)은 그대로 열려 있으므로 결제 후 콜백이 주문을 업데이트한다.
+        const wasRequiresPg = !!responseData.requires_pg_payment;
+        const effectiveRedirectUrl = wasRequiresPg
+            ? buildNoOpRedirectUrl()
+            : (responseData.redirect_url as string | undefined ?? buildNoOpRedirectUrl());
+
         // envelope.data 안에 있는 경우와 최상위에 있는 경우 모두 처리
-        const modifiedData = { ...responseData, requires_pg_payment: false, redirect_url: buildNoOpRedirectUrl() };
+        const modifiedData = { ...responseData, requires_pg_payment: false, redirect_url: effectiveRedirectUrl };
         const modifiedBody = envelope?.data
             ? { ...envelope, data: modifiedData }
             : modifiedData;
