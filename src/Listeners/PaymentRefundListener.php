@@ -7,7 +7,6 @@ namespace Plugins\Sirsoft\Pay\Nicepayments\Listeners;
 use App\Contracts\Extension\HookListenerInterface;
 use App\Extension\HookManager;
 use Illuminate\Support\Facades\Log;
-use Modules\Sirsoft\Ecommerce\Enums\PaymentStatusEnum;
 use Modules\Sirsoft\Ecommerce\Models\Order;
 use Modules\Sirsoft\Ecommerce\Models\OrderPayment;
 use Plugins\Sirsoft\Pay\Nicepayments\Services\NicePaymentsApiService;
@@ -41,8 +40,10 @@ class PaymentRefundListener implements HookListenerInterface
         }
 
         // 가상계좌 입금 완료 건은 환불 계좌 정보가 필요하므로 일반 훅으로 처리 불가
+        // payment_status 는 훅 호출 전 updatePayment() 에서 이미 CANCELLED 로 변경되므로
+        // 입금 여부 판별에는 paid_at (입금 확인 시 설정) 을 사용한다
         if ($payment->vbank_number !== null
-            && $payment->payment_status === PaymentStatusEnum::PAYMENT_COMPLETE) {
+            && $payment->paid_at !== null) {
             return [
                 'success' => false,
                 'error_code' => 'VBANK_REQUIRES_BANK_INFO',
