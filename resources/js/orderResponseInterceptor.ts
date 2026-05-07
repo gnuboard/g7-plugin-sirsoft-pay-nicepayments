@@ -116,20 +116,53 @@ export function installOrderResponseInterceptor(): void {
 
         const responseData = (envelope?.data ?? envelope) as Record<string, unknown> | null;
 
-        if (!responseData?.requires_pg_payment) {
+        const isEasyPay = !!originalPaymentMethod;
+
+        // 일반 결제: PG 결제가 필요 없으면 통과
+        // 간편결제(nicepay_*): requires_pg_payment=false여도 계속 처리
+        //   → 기본 PG가 미설정이면 백엔드가 requires_pg_payment:false를 반환하지만
+        //     간편결제는 나이스페이먼츠 결제창을 열어야 하므로 통과시킴 (취약점 방어)
+        if (!responseData?.requires_pg_payment && !isEasyPay) {
             return response;
         }
 
         // easy pay: pg_provider 무관하게 나이스페이 처리
         // 일반 결제: pg_provider가 나이스페이인 경우에만 처리 (나이스페이가 기본 PG일 때)
-        const isEasyPay = !!originalPaymentMethod;
         const isNicepayPg = responseData.pg_provider === TARGET_PG_PROVIDER;
 
         if (!isEasyPay && !isNicepayPg) {
             return response;
         }
 
-        const pgPaymentData = responseData.pg_payment_data as Record<string, unknown> | undefined;
+        // pg_payment_data: 백엔드 응답에 포함되거나,
+        // 간편결제 + 기본 PG 미설정 시 order 데이터에서 직접 구성
+        let pgPaymentData = responseData.pg_payment_data as Record<string, unknown> | undefined;
+        if (!pgPaymentData && isEasyPay) {
+            const orderData = responseData.order as Record<string, unknown> | undefined;
+            if (orderData) {
+                const options = orderData.options as Array<Record<string, unknown>> | undefined;
+                const firstName = (options?.[0]?.product_name as string | undefined) ?? String(orderData.order_number ?? '');
+                const orderName = (options?.length ?? 0) > 1
+                    ? `${firstName} 외 ${(options?.length ?? 0) - 1}건`
+                    : firstName;
+                const paymentInfo = orderData.payment as Record<string, unknown> | undefined;
+                pgPaymentData = {
+                    order_number: orderData.order_number,
+                    order_name: orderName,
+                    amount: paymentInfo?.paid_amount_local ?? orderData.total_amount,
+                    currency: 'KRW',
+                    customer_name: orderData.orderer_name ?? null,
+                    customer_email: orderData.orderer_email ?? null,
+                    customer_phone: String(orderData.orderer_phone ?? '').replace(/[^0-9]/g, ''),
+                    customer_key: orderData.user_id ?? null,
+                };
+                logger.info('pg_payment_data constructed from order (기본 PG 미설정)', {
+                    order_number: pgPaymentData.order_number,
+                    amount: pgPaymentData.amount,
+                });
+            }
+        }
+
         if (!pgPaymentData) {
             logger.warn('nicepayments order detected but pg_payment_data missing');
             return response;
