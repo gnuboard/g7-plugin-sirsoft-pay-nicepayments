@@ -17,7 +17,7 @@ import { requestPaymentHandler } from './handlers/requestPayment';
 
 const ORDER_CREATE_PATH = '/user/orders';
 const TARGET_PG_PROVIDER = 'sirsoft-nicepayments';
-const PLUGIN_IDENTIFIER = 'sirsoft-pay-nicepayments';
+const PLUGIN_IDENTIFIER = 'sirsoft-pay_nicepayments';
 const FETCH_FLAG = '__sirsoftNicepayFetchInterceptorInstalled';
 const CHECKOUT_ENDPOINT_PATH = '/api/modules/sirsoft-ecommerce/checkout';
 const PAYMENT_IN_PROGRESS_FLAG = '__sirsoftNicepayPaymentInProgress';

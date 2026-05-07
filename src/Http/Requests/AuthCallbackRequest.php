@@ -2,23 +2,23 @@
 
 declare(strict_types=1);
 
-namespace Plugins\Sirsoft\Pay\Nicepayments\Http\Requests;
+namespace Plugins\Sirsoft\PayNicepayments\Http\Requests;
 
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
-use Plugins\Sirsoft\Pay\Nicepayments\Support\UrlHelper;
+use Plugins\Sirsoft\PayNicepayments\Support\UrlHelper;
 
 /**
  * 나이스페이먼츠 결제 승인 콜백 요청 검증
  *
- * POST /plugins/sirsoft-pay-nicepayments/payment/callback
+ * POST /plugins/sirsoft-pay_nicepayments/payment/callback
  *
  * 나이스페이먼츠가 브라우저를 통해 POST 방식으로 전달하는 파라미터입니다.
  */
 class AuthCallbackRequest extends FormRequest
 {
-    private const PLUGIN_IDENTIFIER = 'sirsoft-pay-nicepayments';
+    private const PLUGIN_IDENTIFIER = 'sirsoft-pay_nicepayments';
 
     public function authorize(): bool
     {

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Plugins\Sirsoft\Pay\Nicepayments\Controllers;
+namespace Plugins\Sirsoft\PayNicepayments\Controllers;
 
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;

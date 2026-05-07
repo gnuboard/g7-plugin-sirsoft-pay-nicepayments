@@ -1,6 +1,6 @@
 <?php
 
-namespace Plugins\Sirsoft\Pay\Nicepayments\Tests;
+namespace Plugins\Sirsoft\PayNicepayments\Tests;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -74,7 +74,7 @@ abstract class PluginTestCase extends TestCase
 
     protected function registerPluginAutoload(): void
     {
-        $pluginBasePath = base_path('plugins/sirsoft-pay-nicepayments/src/');
+        $pluginBasePath = base_path('plugins/sirsoft-pay_nicepayments/src/');
 
         spl_autoload_register(function ($class) use ($pluginBasePath) {
             $prefix = 'Plugins\\Sirsoft\\Nicepayments\\';
@@ -107,11 +107,11 @@ abstract class PluginTestCase extends TestCase
 
     protected function registerPluginRoutes(): void
     {
-        $webRoutesFile = base_path('plugins/sirsoft-pay-nicepayments/src/routes/web.php');
+        $webRoutesFile = base_path('plugins/sirsoft-pay_nicepayments/src/routes/web.php');
 
         if (file_exists($webRoutesFile)) {
-            \Illuminate\Support\Facades\Route::prefix('plugins/sirsoft-pay-nicepayments')
-                ->name('plugins.sirsoft-pay-nicepayments.')
+            \Illuminate\Support\Facades\Route::prefix('plugins/sirsoft-pay_nicepayments')
+                ->name('plugins.sirsoft-pay_nicepayments.')
                 ->middleware('web')
                 ->group($webRoutesFile);
         }

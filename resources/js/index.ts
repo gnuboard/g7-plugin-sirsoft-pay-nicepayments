@@ -2,7 +2,7 @@ import { handlerMap } from './handlers';
 import { initEasyPayWatcher } from './handlers/setPaymentMethod';
 import { installOrderResponseInterceptor } from './orderResponseInterceptor';
 
-const PLUGIN_IDENTIFIER = 'sirsoft-pay-nicepayments';
+const PLUGIN_IDENTIFIER = 'sirsoft-pay_nicepayments';
 
 const logger = {
     info: (...args: unknown[]) => console.info(`[${PLUGIN_IDENTIFIER}]`, ...args),

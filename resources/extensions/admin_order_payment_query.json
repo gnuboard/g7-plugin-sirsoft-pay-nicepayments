@@ -4,7 +4,7 @@
         {
             "id": "nicepay_escrow",
             "type": "api",
-            "endpoint": "/api/plugins/sirsoft-pay-nicepayments/admin/orders/{{route.orderNumber}}/escrow-payments",
+            "endpoint": "/api/plugins/sirsoft-pay_nicepayments/admin/orders/{{route.orderNumber}}/escrow-payments",
             "method": "GET",
             "auto_fetch": true,
             "auth_required": true
@@ -12,7 +12,7 @@
         {
             "id": "nicepay_status",
             "type": "api",
-            "endpoint": "/api/plugins/sirsoft-pay-nicepayments/admin/orders/{{route.orderNumber}}/transaction-status",
+            "endpoint": "/api/plugins/sirsoft-pay_nicepayments/admin/orders/{{route.orderNumber}}/transaction-status",
             "method": "GET",
             "auto_fetch": true,
             "auth_required": true
@@ -38,13 +38,13 @@
                             "type": "basic",
                             "name": "Span",
                             "props": { "className": "text-sm font-semibold text-orange-800 dark:text-orange-300" },
-                            "text": "$t:sirsoft-pay-nicepayments.admin.test_mode_badge"
+                            "text": "$t:sirsoft-pay_nicepayments.admin.test_mode_badge"
                         },
                         {
                             "type": "basic",
                             "name": "Span",
                             "props": { "className": "text-sm text-orange-700 dark:text-orange-400" },
-                            "text": "$t:sirsoft-pay-nicepayments.admin.test_mode_order_notice"
+                            "text": "$t:sirsoft-pay_nicepayments.admin.test_mode_order_notice"
                         }
                     ]
                 }
@@ -64,13 +64,13 @@
                             "type": "basic",
                             "name": "Span",
                             "props": { "className": "inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-emerald-500 text-white flex-shrink-0" },
-                            "text": "$t:sirsoft-pay-nicepayments.admin.escrow_badge"
+                            "text": "$t:sirsoft-pay_nicepayments.admin.escrow_badge"
                         },
                         {
                             "type": "basic",
                             "name": "Span",
                             "props": { "className": "text-sm text-emerald-800 dark:text-emerald-300" },
-                            "text": "$t:sirsoft-pay-nicepayments.admin.escrow_payment_notice"
+                            "text": "$t:sirsoft-pay_nicepayments.admin.escrow_payment_notice"
                         }
                     ]
                 }
@@ -104,7 +104,7 @@
                                     "type": "basic",
                                     "name": "H3",
                                     "props": { "className": "text-sm font-semibold text-gray-800 dark:text-gray-200" },
-                                    "text": "$t:sirsoft-pay-nicepayments.admin.escrow_delivery_title"
+                                    "text": "$t:sirsoft-pay_nicepayments.admin.escrow_delivery_title"
                                 }
                             ]
                         },
@@ -156,14 +156,14 @@
                                                             "type": "basic",
                                                             "name": "Label",
                                                             "props": { "className": "block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1" },
-                                                            "text": "$t:sirsoft-pay-nicepayments.admin.escrow_delivery_company"
+                                                            "text": "$t:sirsoft-pay_nicepayments.admin.escrow_delivery_company"
                                                         },
                                                         {
                                                             "type": "basic",
                                                             "name": "Input",
                                                             "props": {
                                                                 "type": "text",
-                                                                "placeholder": "$t:sirsoft-pay-nicepayments.admin.escrow_delivery_company_placeholder",
+                                                                "placeholder": "$t:sirsoft-pay_nicepayments.admin.escrow_delivery_company_placeholder",
                                                                 "className": "w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                                                             },
                                                             "bindLocal": "_escrow_delivery_name"
@@ -178,14 +178,14 @@
                                                             "type": "basic",
                                                             "name": "Label",
                                                             "props": { "className": "block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1" },
-                                                            "text": "$t:sirsoft-pay-nicepayments.admin.escrow_tracking_number"
+                                                            "text": "$t:sirsoft-pay_nicepayments.admin.escrow_tracking_number"
                                                         },
                                                         {
                                                             "type": "basic",
                                                             "name": "Input",
                                                             "props": {
                                                                 "type": "text",
-                                                                "placeholder": "$t:sirsoft-pay-nicepayments.admin.escrow_tracking_number_placeholder",
+                                                                "placeholder": "$t:sirsoft-pay_nicepayments.admin.escrow_tracking_number_placeholder",
                                                                 "className": "w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm font-mono focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                                                             },
                                                             "bindLocal": "_escrow_tracking_number"
@@ -200,7 +200,7 @@
                                                             "type": "basic",
                                                             "name": "Label",
                                                             "props": { "className": "block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1" },
-                                                            "text": "$t:sirsoft-pay-nicepayments.admin.escrow_register_name"
+                                                            "text": "$t:sirsoft-pay_nicepayments.admin.escrow_register_name"
                                                         },
                                                         {
                                                             "type": "basic",
@@ -222,7 +222,7 @@
                                                             "type": "basic",
                                                             "name": "Label",
                                                             "props": { "className": "block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1" },
-                                                            "text": "$t:sirsoft-pay-nicepayments.admin.escrow_buyer_address"
+                                                            "text": "$t:sirsoft-pay_nicepayments.admin.escrow_buyer_address"
                                                         },
                                                         {
                                                             "type": "basic",
@@ -272,7 +272,7 @@
                                                                 {
                                                                     "handler": "apiCall",
                                                                     "auth_required": true,
-                                                                    "target": "/api/plugins/sirsoft-pay-nicepayments/admin/escrow/register-delivery",
+                                                                    "target": "/api/plugins/sirsoft-pay_nicepayments/admin/escrow/register-delivery",
                                                                     "params": {
                                                                         "method": "POST",
                                                                         "body": {
@@ -295,7 +295,7 @@
                                                                             "handler": "toast",
                                                                             "params": {
                                                                                 "type": "success",
-                                                                                "message": "$t:sirsoft-pay-nicepayments.admin.escrow_register_success"
+                                                                                "message": "$t:sirsoft-pay_nicepayments.admin.escrow_register_success"
                                                                             }
                                                                         }
                                                                     ],
@@ -305,7 +305,7 @@
                                                                             "params": {
                                                                                 "target": "local",
                                                                                 "_escrowSubmitting": false,
-                                                                                "_escrowError": "$t:sirsoft-pay-nicepayments.admin.escrow_register_error"
+                                                                                "_escrowError": "$t:sirsoft-pay_nicepayments.admin.escrow_register_error"
                                                                             }
                                                                         }
                                                                     ]
@@ -323,7 +323,7 @@
                                                         {
                                                             "type": "basic",
                                                             "name": "Span",
-                                                            "text": "$t:sirsoft-pay-nicepayments.admin.escrow_register_button"
+                                                            "text": "$t:sirsoft-pay_nicepayments.admin.escrow_register_button"
                                                         }
                                                     ]
                                                 }
@@ -359,13 +359,13 @@
                                     "type": "basic",
                                     "name": "H3",
                                     "props": { "className": "text-sm font-semibold text-gray-800 dark:text-gray-200" },
-                                    "text": "$t:sirsoft-pay-nicepayments.admin.order_verify_title"
+                                    "text": "$t:sirsoft-pay_nicepayments.admin.order_verify_title"
                                 },
                                 {
                                     "type": "basic",
                                     "name": "Span",
                                     "props": { "className": "text-xs text-gray-400 dark:text-gray-500 hidden sm:inline" },
-                                    "text": "$t:sirsoft-pay-nicepayments.admin.order_verify_description"
+                                    "text": "$t:sirsoft-pay_nicepayments.admin.order_verify_description"
                                 }
                             ]
                         },
@@ -434,7 +434,7 @@
                                                                 {
                                                                     "handler": "apiCall",
                                                                     "auth_required": true,
-                                                                    "target": "/api/plugins/sirsoft-pay-nicepayments/admin/transaction/query",
+                                                                    "target": "/api/plugins/sirsoft-pay_nicepayments/admin/transaction/query",
                                                                     "params": {
                                                                         "method": "POST",
                                                                         "body": {
@@ -457,7 +457,7 @@
                                                                             "params": {
                                                                                 "target": "local",
                                                                                 "_nicepayQuerying": false,
-                                                                                "_nicepayError": "$t:sirsoft-pay-nicepayments.admin.order_verify_error"
+                                                                                "_nicepayError": "$t:sirsoft-pay_nicepayments.admin.order_verify_error"
                                                                             }
                                                                         }
                                                                     ]
@@ -475,7 +475,7 @@
                                                         {
                                                             "type": "basic",
                                                             "name": "Span",
-                                                            "text": "$t:sirsoft-pay-nicepayments.admin.order_verify_button"
+                                                            "text": "$t:sirsoft-pay_nicepayments.admin.order_verify_button"
                                                         }
                                                     ]
                                                 }
@@ -505,21 +505,21 @@
                                                             "name": "Span",
                                                             "if": "{{(_local._nicepayResult ?? nicepay_status.data).Status === '0'}}",
                                                             "props": { "className": "inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300" },
-                                                            "text": "$t:sirsoft-pay-nicepayments.admin.pay_status_approved"
+                                                            "text": "$t:sirsoft-pay_nicepayments.admin.pay_status_approved"
                                                         },
                                                         {
                                                             "type": "basic",
                                                             "name": "Span",
                                                             "if": "{{(_local._nicepayResult ?? nicepay_status.data).Status === '1'}}",
                                                             "props": { "className": "inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300" },
-                                                            "text": "$t:sirsoft-pay-nicepayments.admin.pay_status_cancelled"
+                                                            "text": "$t:sirsoft-pay_nicepayments.admin.pay_status_cancelled"
                                                         },
                                                         {
                                                             "type": "basic",
                                                             "name": "Span",
                                                             "if": "{{(_local._nicepayResult ?? nicepay_status.data).Status !== '0' && (_local._nicepayResult ?? nicepay_status.data).Status !== '1'}}",
                                                             "props": { "className": "inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300" },
-                                                            "text": "$t:sirsoft-pay-nicepayments.admin.pay_status_unknown"
+                                                            "text": "$t:sirsoft-pay_nicepayments.admin.pay_status_unknown"
                                                         },
                                                         {
                                                             "type": "basic",
@@ -535,7 +535,7 @@
                                                                 {
                                                                     "type": "basic",
                                                                     "name": "Span",
-                                                                    "text": "$t:sirsoft-pay-nicepayments.admin.escrow_badge"
+                                                                    "text": "$t:sirsoft-pay_nicepayments.admin.escrow_badge"
                                                                 }
                                                             ]
                                                         },
@@ -544,7 +544,7 @@
                                                             "name": "Span",
                                                             "if": "{{(_local._nicepayResult ?? nicepay_status.data)?._is_test_mode === true}}",
                                                             "props": { "className": "inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300" },
-                                                            "text": "$t:sirsoft-pay-nicepayments.admin.test_mode_badge"
+                                                            "text": "$t:sirsoft-pay_nicepayments.admin.test_mode_badge"
                                                         }
                                                     ]
                                                 },
@@ -557,7 +557,7 @@
                                                             "type": "basic",
                                                             "name": "Span",
                                                             "props": { "className": "text-gray-500 dark:text-gray-400" },
-                                                            "text": "$t:sirsoft-pay-nicepayments.admin.result_auth_code"
+                                                            "text": "$t:sirsoft-pay_nicepayments.admin.result_auth_code"
                                                         },
                                                         {
                                                             "type": "basic",
@@ -569,7 +569,7 @@
                                                             "type": "basic",
                                                             "name": "Span",
                                                             "props": { "className": "text-gray-500 dark:text-gray-400" },
-                                                            "text": "$t:sirsoft-pay-nicepayments.admin.result_auth_date"
+                                                            "text": "$t:sirsoft-pay_nicepayments.admin.result_auth_date"
                                                         },
                                                         {
                                                             "type": "basic",
@@ -581,19 +581,19 @@
                                                             "type": "basic",
                                                             "name": "Span",
                                                             "props": { "className": "text-gray-500 dark:text-gray-400" },
-                                                            "text": "$t:sirsoft-pay-nicepayments.admin.result_escrow"
+                                                            "text": "$t:sirsoft-pay_nicepayments.admin.result_escrow"
                                                         },
                                                         {
                                                             "type": "basic",
                                                             "name": "Span",
                                                             "props": { "className": "text-gray-900 dark:text-gray-100" },
-                                                            "text": "{{((_local._nicepayResult ?? nicepay_status.data).EscrowYN === 'Y' || (_local._nicepayResult ?? nicepay_status.data)._local_is_escrow) ? '$t:sirsoft-pay-nicepayments.admin.escrow_yes' : '$t:sirsoft-pay-nicepayments.admin.escrow_no'}}"
+                                                            "text": "{{((_local._nicepayResult ?? nicepay_status.data).EscrowYN === 'Y' || (_local._nicepayResult ?? nicepay_status.data)._local_is_escrow) ? '$t:sirsoft-pay_nicepayments.admin.escrow_yes' : '$t:sirsoft-pay_nicepayments.admin.escrow_no'}}"
                                                         },
                                                         {
                                                             "type": "basic",
                                                             "name": "Span",
                                                             "props": { "className": "text-gray-500 dark:text-gray-400" },
-                                                            "text": "$t:sirsoft-pay-nicepayments.admin.result_result_code"
+                                                            "text": "$t:sirsoft-pay_nicepayments.admin.result_result_code"
                                                         },
                                                         {
                                                             "type": "basic",
@@ -627,12 +627,12 @@
                                 {
                                     "type": "basic", "name": "H3",
                                     "props": { "className": "text-sm font-semibold text-gray-800 dark:text-gray-200" },
-                                    "text": "$t:sirsoft-pay-nicepayments.admin.vbank_noti_title"
+                                    "text": "$t:sirsoft-pay_nicepayments.admin.vbank_noti_title"
                                 },
                                 {
                                     "type": "basic", "name": "Span",
                                     "props": { "className": "text-xs text-gray-400 dark:text-gray-500 hidden sm:inline" },
-                                    "text": "$t:sirsoft-pay-nicepayments.admin.vbank_noti_description"
+                                    "text": "$t:sirsoft-pay_nicepayments.admin.vbank_noti_description"
                                 },
                                 {
                                     "type": "basic",
@@ -647,7 +647,7 @@
                                             "if": "{{_local._vbankNotiLoading === true}}",
                                             "props": { "name": "spinner", "className": "w-3 h-3 animate-spin" }
                                         },
-                                        { "type": "basic", "name": "Span", "text": "$t:sirsoft-pay-nicepayments.admin.vbank_noti_query_button" }
+                                        { "type": "basic", "name": "Span", "text": "$t:sirsoft-pay_nicepayments.admin.vbank_noti_query_button" }
                                     ],
                                     "actions": [
                                         {
@@ -661,7 +661,7 @@
                                                 {
                                                     "handler": "apiCall",
                                                     "auth_required": true,
-                                                    "target": "/api/plugins/sirsoft-pay-nicepayments/admin/orders/{{order.data?.order_number}}/vbank-notifications",
+                                                    "target": "/api/plugins/sirsoft-pay_nicepayments/admin/orders/{{order.data?.order_number}}/vbank-notifications",
                                                     "params": { "method": "GET" },
                                                     "onSuccess": [
                                                         {
@@ -679,7 +679,7 @@
                                                             "params": {
                                                                 "target": "local",
                                                                 "_vbankNotiLoading": false,
-                                                                "_vbankNotiError": "$t:sirsoft-pay-nicepayments.admin.vbank_noti_load_error"
+                                                                "_vbankNotiError": "$t:sirsoft-pay_nicepayments.admin.vbank_noti_load_error"
                                                             }
                                                         }
                                                     ]
@@ -695,7 +695,7 @@
                             "name": "P",
                             "if": "{{!_local._vbankNotiData && !_local._vbankNotiLoading && !_local._vbankNotiError}}",
                             "props": { "className": "text-xs text-gray-500 dark:text-gray-400 italic" },
-                            "text": "$t:sirsoft-pay-nicepayments.admin.vbank_noti_not_loaded"
+                            "text": "$t:sirsoft-pay_nicepayments.admin.vbank_noti_not_loaded"
                         },
                         {
                             "type": "basic",
@@ -709,7 +709,7 @@
                             "name": "P",
                             "if": "{{_local._vbankNotiData && (_local._vbankNotiData.notifications ?? []).length === 0}}",
                             "props": { "className": "text-xs text-gray-500 dark:text-gray-400 italic" },
-                            "text": "$t:sirsoft-pay-nicepayments.admin.vbank_noti_empty"
+                            "text": "$t:sirsoft-pay_nicepayments.admin.vbank_noti_empty"
                         },
                         {
                             "type": "basic",
@@ -722,19 +722,19 @@
                                     "name": "Dl",
                                     "props": { "className": "grid grid-cols-2 gap-x-4 gap-y-1.5 text-xs mb-3" },
                                     "children": [
-                                        { "type": "basic", "name": "Dt", "props": { "className": "text-gray-500 dark:text-gray-400" }, "text": "$t:sirsoft-pay-nicepayments.admin.vbank_noti_count" },
+                                        { "type": "basic", "name": "Dt", "props": { "className": "text-gray-500 dark:text-gray-400" }, "text": "$t:sirsoft-pay_nicepayments.admin.vbank_noti_count" },
                                         { "type": "basic", "name": "Dd", "props": { "className": "text-gray-900 dark:text-gray-100 font-semibold" }, "text": "{{(_local._vbankNotiData.summary?.count ?? 0) + '회'}}" },
-                                        { "type": "basic", "name": "Dt", "props": { "className": "text-gray-500 dark:text-gray-400" }, "text": "$t:sirsoft-pay-nicepayments.admin.vbank_noti_first_at" },
+                                        { "type": "basic", "name": "Dt", "props": { "className": "text-gray-500 dark:text-gray-400" }, "text": "$t:sirsoft-pay_nicepayments.admin.vbank_noti_first_at" },
                                         { "type": "basic", "name": "Dd", "props": { "className": "text-gray-900 dark:text-gray-100 font-mono" }, "text": "{{$formatDate(_local._vbankNotiData.summary?.first_received_at, 'YYYY-MM-DD HH:mm:ss') ?? '-'}}" },
-                                        { "type": "basic", "name": "Dt", "props": { "className": "text-gray-500 dark:text-gray-400" }, "text": "$t:sirsoft-pay-nicepayments.admin.vbank_noti_last_at" },
+                                        { "type": "basic", "name": "Dt", "props": { "className": "text-gray-500 dark:text-gray-400" }, "text": "$t:sirsoft-pay_nicepayments.admin.vbank_noti_last_at" },
                                         { "type": "basic", "name": "Dd", "props": { "className": "text-gray-900 dark:text-gray-100 font-mono" }, "text": "{{$formatDate(_local._vbankNotiData.summary?.last_received_at, 'YYYY-MM-DD HH:mm:ss') ?? '-'}}" },
-                                        { "type": "basic", "name": "Dt", "props": { "className": "text-gray-500 dark:text-gray-400" }, "text": "$t:sirsoft-pay-nicepayments.admin.vbank_noti_deposited_at" },
+                                        { "type": "basic", "name": "Dt", "props": { "className": "text-gray-500 dark:text-gray-400" }, "text": "$t:sirsoft-pay_nicepayments.admin.vbank_noti_deposited_at" },
                                         { "type": "basic", "name": "Dd", "props": { "className": "text-emerald-700 dark:text-emerald-400 font-mono" }, "text": "{{$formatDate(_local._vbankNotiData.summary?.deposited_at, 'YYYY-MM-DD HH:mm:ss') ?? '-'}}" },
                                         {
                                             "type": "basic", "name": "Dt",
                                             "if": "{{!!_local._vbankNotiData.summary?.cancelled_at}}",
                                             "props": { "className": "text-gray-500 dark:text-gray-400" },
-                                            "text": "$t:sirsoft-pay-nicepayments.admin.vbank_noti_cancelled_at"
+                                            "text": "$t:sirsoft-pay_nicepayments.admin.vbank_noti_cancelled_at"
                                         },
                                         {
                                             "type": "basic", "name": "Dd",
@@ -742,7 +742,7 @@
                                             "props": { "className": "text-rose-700 dark:text-rose-400 font-mono" },
                                             "text": "{{$formatDate(_local._vbankNotiData.summary?.cancelled_at, 'YYYY-MM-DD HH:mm:ss')}}"
                                         },
-                                        { "type": "basic", "name": "Dt", "props": { "className": "text-gray-500 dark:text-gray-400" }, "text": "$t:sirsoft-pay-nicepayments.admin.vbank_noti_depositor" },
+                                        { "type": "basic", "name": "Dt", "props": { "className": "text-gray-500 dark:text-gray-400" }, "text": "$t:sirsoft-pay_nicepayments.admin.vbank_noti_depositor" },
                                         { "type": "basic", "name": "Dd", "props": { "className": "text-gray-900 dark:text-gray-100" }, "text": "{{_local._vbankNotiData.summary?.last_depositor ?? '-'}}" }
                                     ]
                                 },
@@ -754,7 +754,7 @@
                                         {
                                             "type": "basic", "name": "P",
                                             "props": { "className": "text-xs font-semibold text-gray-700 dark:text-gray-300 mb-2" },
-                                            "text": "$t:sirsoft-pay-nicepayments.admin.vbank_noti_history"
+                                            "text": "$t:sirsoft-pay_nicepayments.admin.vbank_noti_history"
                                         },
                                         {
                                             "type": "basic",
@@ -775,19 +775,19 @@
                                                             "type": "basic", "name": "Span",
                                                             "if": "{{noti.type === 'deposited'}}",
                                                             "props": { "className": "inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300 flex-shrink-0" },
-                                                            "text": "$t:sirsoft-pay-nicepayments.admin.vbank_noti_type_deposited"
+                                                            "text": "$t:sirsoft-pay_nicepayments.admin.vbank_noti_type_deposited"
                                                         },
                                                         {
                                                             "type": "basic", "name": "Span",
                                                             "if": "{{noti.type === 'cancelled'}}",
                                                             "props": { "className": "inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-rose-100 text-rose-800 dark:bg-rose-900/30 dark:text-rose-300 flex-shrink-0" },
-                                                            "text": "$t:sirsoft-pay-nicepayments.admin.vbank_noti_type_cancelled"
+                                                            "text": "$t:sirsoft-pay_nicepayments.admin.vbank_noti_type_cancelled"
                                                         },
                                                         {
                                                             "type": "basic", "name": "Span",
                                                             "if": "{{noti.type !== 'deposited' && noti.type !== 'cancelled'}}",
                                                             "props": { "className": "inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300 flex-shrink-0" },
-                                                            "text": "$t:sirsoft-pay-nicepayments.admin.vbank_noti_type_other"
+                                                            "text": "$t:sirsoft-pay_nicepayments.admin.vbank_noti_type_other"
                                                         },
                                                         {
                                                             "type": "basic", "name": "Span",

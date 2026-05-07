@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace Plugins\Sirsoft\Pay\Nicepayments\Http\Requests;
+namespace Plugins\Sirsoft\PayNicepayments\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
 /**
  * 나이스페이먼츠 가상계좌 입금 통보 요청 검증
  *
- * POST /plugins/sirsoft-pay-nicepayments/payment/vbank-notify
+ * POST /plugins/sirsoft-pay_nicepayments/payment/vbank-notify
  * 공식 매뉴얼: https://developers.nicepay.co.kr/manual-noti.php
  *
  * NicePay 서버가 직접 호출하는 입금 확인 웹훅. 응답으로 정확히 "OK" (200, text/plain) 를

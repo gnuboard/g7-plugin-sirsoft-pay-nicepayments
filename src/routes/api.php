@@ -1,19 +1,19 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use Plugins\Sirsoft\Pay\Nicepayments\Controllers\AdminEscrowController;
-use Plugins\Sirsoft\Pay\Nicepayments\Controllers\AdminOrderListController;
-use Plugins\Sirsoft\Pay\Nicepayments\Controllers\AdminTransactionController;
-use Plugins\Sirsoft\Pay\Nicepayments\Controllers\AdminVbankNotificationController;
-use Plugins\Sirsoft\Pay\Nicepayments\Controllers\AdminVbankRefundController;
-use Plugins\Sirsoft\Pay\Nicepayments\Controllers\UserReceiptController;
+use Plugins\Sirsoft\PayNicepayments\Controllers\AdminEscrowController;
+use Plugins\Sirsoft\PayNicepayments\Controllers\AdminOrderListController;
+use Plugins\Sirsoft\PayNicepayments\Controllers\AdminTransactionController;
+use Plugins\Sirsoft\PayNicepayments\Controllers\AdminVbankNotificationController;
+use Plugins\Sirsoft\PayNicepayments\Controllers\AdminVbankRefundController;
+use Plugins\Sirsoft\PayNicepayments\Controllers\UserReceiptController;
 
 /*
 |--------------------------------------------------------------------------
 | NicePayments Plugin API Routes
 |--------------------------------------------------------------------------
 |
-| 프리픽스: /api/plugins/sirsoft-pay-nicepayments (PluginRouteServiceProvider 자동 적용)
+| 프리픽스: /api/plugins/sirsoft-pay_nicepayments (PluginRouteServiceProvider 자동 적용)
 | 미들웨어: api (PluginRouteServiceProvider 자동 적용)
 |
 */
@@ -29,7 +29,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth:sanctum', 'admin'])->g
         return response()->json([
             'success' => true,
             'data' => [
-                'url' => url('/plugins/sirsoft-pay-nicepayments/payment/vbank-notify'),
+                'url' => url('/plugins/sirsoft-pay_nicepayments/payment/vbank-notify'),
             ],
         ]);
     })->name('vbank.notify.url');

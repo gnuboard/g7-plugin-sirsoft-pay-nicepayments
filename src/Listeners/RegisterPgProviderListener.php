@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace Plugins\Sirsoft\Pay\Nicepayments\Listeners;
+namespace Plugins\Sirsoft\PayNicepayments\Listeners;
 
 use App\Contracts\Extension\HookListenerInterface;
 
 class RegisterPgProviderListener implements HookListenerInterface
 {
-    private const PLUGIN_IDENTIFIER = 'sirsoft-pay-nicepayments';
+    private const PLUGIN_IDENTIFIER = 'sirsoft-pay_nicepayments';
 
     public static function getSubscribedHooks(): array
     {
@@ -66,8 +66,8 @@ class RegisterPgProviderListener implements HookListenerInterface
                 ? ($settings['test_mid'] ?? '')
                 : $liveMid,
             'sdk_url' => 'https://web.nicepay.co.kr/v3/webstd/js/nicepay-3.0.js',
-            'callback_url' => '/plugins/sirsoft-pay-nicepayments/payment/callback',
-            'sign_data_url' => '/plugins/sirsoft-pay-nicepayments/payment/sign-data',
+            'callback_url' => '/plugins/sirsoft-pay_nicepayments/payment/callback',
+            'sign_data_url' => '/plugins/sirsoft-pay_nicepayments/payment/sign-data',
             'useEscrow' => (bool) ($settings['use_escrow'] ?? false),
             'enabled_easy_pays' => $enabledEasyPays,
         ]);

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Plugins\Sirsoft\Pay\Nicepayments\Support;
+namespace Plugins\Sirsoft\PayNicepayments\Support;
 
 use Illuminate\Http\Request;
 

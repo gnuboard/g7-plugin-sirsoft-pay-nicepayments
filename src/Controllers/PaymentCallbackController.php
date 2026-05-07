@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Plugins\Sirsoft\Pay\Nicepayments\Controllers;
+namespace Plugins\Sirsoft\PayNicepayments\Controllers;
 
 use App\Extension\HookManager;
 use App\Services\PluginSettingsService;
@@ -14,10 +14,10 @@ use Illuminate\Support\Facades\Log;
 use Modules\Sirsoft\Ecommerce\Enums\PaymentStatusEnum;
 use Modules\Sirsoft\Ecommerce\Exceptions\PaymentAmountMismatchException;
 use Modules\Sirsoft\Ecommerce\Services\OrderProcessingService;
-use Plugins\Sirsoft\Pay\Nicepayments\Http\Requests\AuthCallbackRequest;
-use Plugins\Sirsoft\Pay\Nicepayments\Http\Requests\VbankNotifyRequest;
-use Plugins\Sirsoft\Pay\Nicepayments\Services\NicePaymentsApiService;
-use Plugins\Sirsoft\Pay\Nicepayments\Support\UrlHelper;
+use Plugins\Sirsoft\PayNicepayments\Http\Requests\AuthCallbackRequest;
+use Plugins\Sirsoft\PayNicepayments\Http\Requests\VbankNotifyRequest;
+use Plugins\Sirsoft\PayNicepayments\Services\NicePaymentsApiService;
+use Plugins\Sirsoft\PayNicepayments\Support\UrlHelper;
 
 /**
  * 나이스페이먼츠 결제 콜백 컨트롤러
@@ -28,7 +28,7 @@ use Plugins\Sirsoft\Pay\Nicepayments\Support\UrlHelper;
  */
 class PaymentCallbackController
 {
-    private const PLUGIN_IDENTIFIER = 'sirsoft-pay-nicepayments';
+    private const PLUGIN_IDENTIFIER = 'sirsoft-pay_nicepayments';
 
     /** 성공 결제 방법 ResultCode 목록 */
     private const SUCCESS_RESULT_CODES = ['3001', '4000', '4100', 'A000', '7001'];
@@ -42,7 +42,7 @@ class PaymentCallbackController
     /**
      * 나이스페이먼츠 결제 승인 콜백
      *
-     * POST /plugins/sirsoft-pay-nicepayments/payment/callback
+     * POST /plugins/sirsoft-pay_nicepayments/payment/callback
      * (CSRF 제외 - 나이스페이먼츠가 브라우저 통해 POST 전달)
      */
     public function authCallback(AuthCallbackRequest $request): \Illuminate\Http\RedirectResponse
@@ -119,12 +119,12 @@ class PaymentCallbackController
                 return redirect($this->resolveFailUrl(['error' => 'order_not_found', 'orderId' => $moid]));
             }
 
-            HookManager::doAction('sirsoft-pay-nicepayments.payment.before_authorize', $order, $validated);
+            HookManager::doAction('sirsoft-pay_nicepayments.payment.before_authorize', $order, $validated);
 
             // 4단계: 서버 승인 API 호출
             $pgResponse = $this->apiService->authorizePayment($nextAppUrl, $txTid, $authToken, $amt);
 
-            HookManager::doAction('sirsoft-pay-nicepayments.payment.after_authorize', $order, $pgResponse);
+            HookManager::doAction('sirsoft-pay_nicepayments.payment.after_authorize', $order, $pgResponse);
 
             $resultCode = $pgResponse['ResultCode'] ?? '';
 
@@ -252,7 +252,7 @@ class PaymentCallbackController
     /**
      * 결제 요청 SignData 생성
      *
-     * POST /plugins/sirsoft-pay-nicepayments/payment/sign-data
+     * POST /plugins/sirsoft-pay_nicepayments/payment/sign-data
      */
     public function signData(Request $request): JsonResponse
     {
@@ -260,7 +260,7 @@ class PaymentCallbackController
         $moid = (string) $request->input('moid', '');
 
         if ($amt <= 0 || $moid === '') {
-            return response()->json(['error' => '잘못된 요청입니다.'], 400);
+            return response()->json(['error' => __('sirsoft-pay_nicepayments::messages.errors.invalid_request')], 400);
         }
 
         // 주문 금액 검증: 클라이언트가 임의 금액으로 SignData를 요청하는 조작 방지
@@ -272,7 +272,7 @@ class PaymentCallbackController
                 'ip' => $request->ip(),
             ]);
 
-            return response()->json(['error' => '주문을 찾을 수 없습니다.'], 422);
+            return response()->json(['error' => __('sirsoft-pay_nicepayments::messages.errors.order_not_found')], 422);
         }
 
         if ((int) $order->total_amount !== $amt) {
@@ -283,7 +283,7 @@ class PaymentCallbackController
                 'ip' => $request->ip(),
             ]);
 
-            return response()->json(['error' => '요청 금액이 유효하지 않습니다.'], 422);
+            return response()->json(['error' => __('sirsoft-pay_nicepayments::messages.errors.invalid_amount')], 422);
         }
 
         $ediDate = $this->apiService->generateEdiDate();
@@ -299,7 +299,7 @@ class PaymentCallbackController
     /**
      * 가상계좌 입금 통보 처리
      *
-     * POST /plugins/sirsoft-pay-nicepayments/payment/vbank-notify
+     * POST /plugins/sirsoft-pay_nicepayments/payment/vbank-notify
      * 공식 매뉴얼: https://developers.nicepay.co.kr/manual-noti.php
      *
      * 동작:

@@ -1,6 +1,6 @@
 <?php
 
-namespace Plugins\Sirsoft\Pay\Nicepayments;
+namespace Plugins\Sirsoft\PayNicepayments;
 
 use App\Extension\AbstractPlugin;
 
@@ -190,7 +190,7 @@ class Plugin extends AbstractPlugin
     {
         return [
             [
-                'name' => 'sirsoft-pay-nicepayments.payment.before_authorize',
+                'name' => 'sirsoft-pay_nicepayments.payment.before_authorize',
                 'type' => 'action',
                 'description' => [
                     'ko' => '나이스페이먼츠 서버 승인 API 호출 전',
@@ -198,7 +198,7 @@ class Plugin extends AbstractPlugin
                 ],
             ],
             [
-                'name' => 'sirsoft-pay-nicepayments.payment.after_authorize',
+                'name' => 'sirsoft-pay_nicepayments.payment.after_authorize',
                 'type' => 'action',
                 'description' => [
                     'ko' => '나이스페이먼츠 서버 승인 완료 후',

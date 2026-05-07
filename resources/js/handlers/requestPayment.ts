@@ -108,7 +108,7 @@ function createPaymentForm(action: string, fields: Record<string, string>): HTML
     return form;
 }
 
-const CALLBACK_PATH = '/plugins/sirsoft-pay-nicepayments/payment/callback';
+const CALLBACK_PATH = '/plugins/sirsoft-pay_nicepayments/payment/callback';
 
 // 나이스페이 v3 모바일 결제창 endpoint — 폼을 직접 POST 하면 NicePay 모바일 페이지로 전체 redirect.
 // PC 와 달리 SDK 불필요. 결제 완료 후 ReturnURL 로 redirect.
@@ -152,7 +152,7 @@ function isMobileDevice(): boolean {
  * 나이스페이먼츠 결제창 호출 핸들러 (나이스페이 구형 API, goPay 방식)
  *
  * 체크아웃 레이아웃에서 주문 생성 API 성공 후 호출됩니다:
- *   handler: "sirsoft-pay-nicepayments.requestPayment"
+ *   handler: "sirsoft-pay_nicepayments.requestPayment"
  *   params: { pgPaymentData: response.data.pg_payment_data }
  *
  * 호출 순서:
@@ -174,7 +174,7 @@ export async function requestPaymentHandler(action: PaymentAction, _context?: un
     const paymentMethod = paramPaymentMethod ?? localState?.paymentMethod ?? 'card';
 
     if (!pgPaymentData) {
-        console.error('[sirsoft-pay-nicepayments] pgPaymentData is required');
+        console.error('[sirsoft-pay_nicepayments] pgPaymentData is required');
         return;
     }
 
@@ -185,7 +185,7 @@ export async function requestPaymentHandler(action: PaymentAction, _context?: un
         const configJson = await G7Core.api.get('/modules/sirsoft-ecommerce/payments/client-config/nicepayments');
 
         if (!configJson.data) {
-            console.error('[sirsoft-pay-nicepayments] Failed to fetch client config', configJson);
+            console.error('[sirsoft-pay_nicepayments] Failed to fetch client config', configJson);
             return;
         }
 
@@ -384,7 +384,7 @@ export async function requestPaymentHandler(action: PaymentAction, _context?: un
         window.goPay(form);
 
     } catch (error: unknown) {
-        console.error('[sirsoft-pay-nicepayments] requestPayment error', error);
+        console.error('[sirsoft-pay_nicepayments] requestPayment error', error);
         (window as unknown as Record<string, unknown>)['__sirsoftNicepayPaymentInProgress'] = false;
         G7Core?.state?.setLocal?.({ isSubmittingOrder: false, paymentMethod });
         G7Core?.toast?.error?.('결제 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.');

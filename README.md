@@ -38,7 +38,7 @@ npm install && npm run build
 나이스페이먼츠 관리자에서 가상계좌 입금 통보 URL을 아래로 설정하세요:
 
 ```
-https://your-domain.com/plugins/sirsoft-pay-nicepayments/payment/vbank-notify
+https://your-domain.com/plugins/sirsoft-pay_nicepayments/payment/vbank-notify
 ```
 
 ### IP 화이트리스트
@@ -68,9 +68,9 @@ https://your-domain.com/plugins/sirsoft-pay-nicepayments/payment/vbank-notify
 
 | 훅 이름 | 시점 | 인수 |
 |---------|------|------|
-| `sirsoft-pay-nicepayments.payment.before_authorize` | 서버 승인 API 호출 직전 | `Order $order, array $pgParams` |
-| `sirsoft-pay-nicepayments.payment.after_authorize` | 서버 승인 API 응답 직후 | `Order $order, array $pgResponse` |
-| `sirsoft-pay-nicepayments.payment.refund_failed` | 환불 API 호출 실패 시 | `Order $order, OrderPayment $payment, array $context` |
+| `sirsoft-pay_nicepayments.payment.before_authorize` | 서버 승인 API 호출 직전 | `Order $order, array $pgParams` |
+| `sirsoft-pay_nicepayments.payment.after_authorize` | 서버 승인 API 응답 직후 | `Order $order, array $pgResponse` |
+| `sirsoft-pay_nicepayments.payment.refund_failed` | 환불 API 호출 실패 시 | `Order $order, OrderPayment $payment, array $context` |
 
 #### `refund_failed` context 구조
 
@@ -88,7 +88,7 @@ https://your-domain.com/plugins/sirsoft-pay-nicepayments/payment/vbank-notify
 use App\Extension\HookManager;
 
 HookManager::addAction(
-    'sirsoft-pay-nicepayments.payment.refund_failed',
+    'sirsoft-pay_nicepayments.payment.refund_failed',
     function (Order $order, OrderPayment $payment, array $context) {
         // 예: Slack 알림 발송
         SlackNotifier::send("환불 실패: 주문 #{$order->order_number}, 오류: {$context['error']}");
@@ -102,7 +102,7 @@ HookManager::addAction(
 `NicePaymentsApiService::queryTransaction(string $tid): array` 메서드로 거래 상태를 조회할 수 있습니다.
 
 ```php
-$apiService = app(\Plugins\Sirsoft\Pay\Nicepayments\Services\NicePaymentsApiService::class);
+$apiService = app(\Plugins\Sirsoft\PayNicepayments\Services\NicePaymentsApiService::class);
 $result = $apiService->queryTransaction('NICE_TID_12345');
 // $result['ResultCode'], $result['Amt'], ...
 ```

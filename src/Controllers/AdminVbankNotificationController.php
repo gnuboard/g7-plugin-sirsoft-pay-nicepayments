@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Plugins\Sirsoft\Pay\Nicepayments\Controllers;
+namespace Plugins\Sirsoft\PayNicepayments\Controllers;
 
 use Illuminate\Http\JsonResponse;
 use Modules\Sirsoft\Ecommerce\Services\OrderProcessingService;
@@ -10,7 +10,7 @@ use Modules\Sirsoft\Ecommerce\Services\OrderProcessingService;
 /**
  * 어드민 — 가상계좌 입금통보 이력 조회 컨트롤러
  *
- * GET /api/plugins/sirsoft-pay-nicepayments/admin/orders/{orderNumber}/vbank-notifications
+ * GET /api/plugins/sirsoft-pay_nicepayments/admin/orders/{orderNumber}/vbank-notifications
  *
  * OrderPaymentResource 는 payment_meta 를 노출하지 않으므로 (PII 보호),
  * 어드민 전용으로 입금통보 이력만 따로 추출해 반환한다.
@@ -40,7 +40,7 @@ class AdminVbankNotificationController
         if (! $order) {
             return response()->json([
                 'success' => false,
-                'message' => '주문을 찾을 수 없습니다.',
+                'message' => __('sirsoft-pay_nicepayments::messages.errors.order_not_found'),
                 'data' => ['notifications' => [], 'summary' => null],
             ], 404);
         }

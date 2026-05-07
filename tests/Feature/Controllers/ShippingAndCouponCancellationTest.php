@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Plugins\Sirsoft\Pay\Nicepayments\Tests\Feature\Controllers;
+namespace Plugins\Sirsoft\PayNicepayments\Tests\Feature\Controllers;
 
 use App\Extension\HookManager;
 use App\Models\User;
@@ -21,9 +21,9 @@ use Modules\Sirsoft\Ecommerce\Models\OrderPayment;
 use Modules\Sirsoft\Ecommerce\Models\OrderRefund;
 use Modules\Sirsoft\Ecommerce\Models\OrderShipping;
 use Modules\Sirsoft\Ecommerce\Models\Sequence;
-use Plugins\Sirsoft\Pay\Nicepayments\Listeners\PaymentRefundListener;
-use Plugins\Sirsoft\Pay\Nicepayments\Services\NicePaymentsApiService;
-use Plugins\Sirsoft\Pay\Nicepayments\Tests\PluginTestCase;
+use Plugins\Sirsoft\PayNicepayments\Listeners\PaymentRefundListener;
+use Plugins\Sirsoft\PayNicepayments\Services\NicePaymentsApiService;
+use Plugins\Sirsoft\PayNicepayments\Tests\PluginTestCase;
 
 /**
  * 나이스페이먼츠 결제 플러그인 — 배송비·쿠폰 적용 취소 통합 테스트
@@ -728,7 +728,7 @@ class ShippingAndCouponCancellationTest extends PluginTestCase
         $order = $data['order'];
 
         $hookFired = false;
-        HookManager::addAction('sirsoft-pay-nicepayments.payment.refund_failed', function () use (&$hookFired) {
+        HookManager::addAction('sirsoft-pay_nicepayments.payment.refund_failed', function () use (&$hookFired) {
             $hookFired = true;
         }, 20);
 

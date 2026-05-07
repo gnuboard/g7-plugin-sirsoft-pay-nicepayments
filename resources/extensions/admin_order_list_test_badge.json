@@ -4,7 +4,7 @@
         {
             "id": "nicepay_test_map",
             "type": "api",
-            "endpoint": "/api/plugins/sirsoft-pay-nicepayments/admin/orders/test-mode-map",
+            "endpoint": "/api/plugins/sirsoft-pay_nicepayments/admin/orders/test-mode-map",
             "method": "GET",
             "auto_fetch": true,
             "auth_required": true,
@@ -214,7 +214,7 @@
                                         "name": "Span",
                                         "if": "{{nicepay_test_map.data?.[row.order_number] === true}}",
                                         "props": { "className": "text-xs font-medium text-orange-500 dark:text-orange-400 leading-tight" },
-                                        "text": "($t:sirsoft-pay-nicepayments.admin.test_mode_badge)"
+                                        "text": "($t:sirsoft-pay_nicepayments.admin.test_mode_badge)"
                                     }
                                 ]
                             }

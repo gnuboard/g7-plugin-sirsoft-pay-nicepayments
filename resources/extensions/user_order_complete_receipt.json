@@ -22,7 +22,7 @@
                                     "type": "basic",
                                     "name": "Span",
                                     "props": { "className": "text-gray-600 dark:text-gray-400 text-sm" },
-                                    "text": "$t:sirsoft-pay-nicepayments.user.easy_pay_label"
+                                    "text": "$t:sirsoft-pay_nicepayments.user.easy_pay_label"
                                 },
                                 {
                                     "type": "basic",
@@ -42,7 +42,7 @@
                                     "type": "basic",
                                     "name": "Span",
                                     "props": { "className": "text-gray-600 dark:text-gray-400 text-sm" },
-                                    "text": "$t:sirsoft-pay-nicepayments.user.receipt_label"
+                                    "text": "$t:sirsoft-pay_nicepayments.user.receipt_label"
                                 },
                                 {
                                     "type": "basic",
@@ -68,7 +68,7 @@
                                                 {
                                                     "type": "basic",
                                                     "name": "Span",
-                                                    "text": "$t:sirsoft-pay-nicepayments.user.view_receipt"
+                                                    "text": "$t:sirsoft-pay_nicepayments.user.view_receipt"
                                                 }
                                             ]
                                         },
@@ -93,7 +93,7 @@
                                                         {
                                                             "handler": "apiCall",
                                                             "auth_required": true,
-                                                            "target": "/api/plugins/sirsoft-pay-nicepayments/user/orders/{{route.id}}/receipt",
+                                                            "target": "/api/plugins/sirsoft-pay_nicepayments/user/orders/{{route.id}}/receipt",
                                                             "params": { "method": "GET" },
                                                             "onSuccess": [
                                                                 {
@@ -125,7 +125,7 @@
                                                 {
                                                     "type": "basic",
                                                     "name": "Span",
-                                                    "text": "$t:sirsoft-pay-nicepayments.user.view_cash_receipt"
+                                                    "text": "$t:sirsoft-pay_nicepayments.user.view_cash_receipt"
                                                 }
                                             ]
                                         },
@@ -149,7 +149,7 @@
                                                 {
                                                     "type": "basic",
                                                     "name": "Span",
-                                                    "text": "$t:sirsoft-pay-nicepayments.user.view_cash_receipt"
+                                                    "text": "$t:sirsoft-pay_nicepayments.user.view_cash_receipt"
                                                 }
                                             ]
                                         }

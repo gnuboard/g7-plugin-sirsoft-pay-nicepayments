@@ -1,11 +1,11 @@
 <?php
 
-namespace Plugins\Sirsoft\Pay\Nicepayments\Tests\Unit\Services;
+namespace Plugins\Sirsoft\PayNicepayments\Tests\Unit\Services;
 
 use App\Services\PluginSettingsService;
 use Illuminate\Support\Facades\Http;
-use Plugins\Sirsoft\Pay\Nicepayments\Services\NicePaymentsApiService;
-use Plugins\Sirsoft\Pay\Nicepayments\Tests\PluginTestCase;
+use Plugins\Sirsoft\PayNicepayments\Services\NicePaymentsApiService;
+use Plugins\Sirsoft\PayNicepayments\Tests\PluginTestCase;
 
 class NicePaymentsApiServiceTest extends PluginTestCase
 {

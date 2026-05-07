@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace Plugins\Sirsoft\Pay\Nicepayments\Listeners;
+namespace Plugins\Sirsoft\PayNicepayments\Listeners;
 
 use App\Contracts\Extension\HookListenerInterface;
 use App\Extension\HookManager;
 use Illuminate\Support\Facades\Log;
 use Modules\Sirsoft\Ecommerce\Models\Order;
 use Modules\Sirsoft\Ecommerce\Models\OrderPayment;
-use Plugins\Sirsoft\Pay\Nicepayments\Services\NicePaymentsApiService;
+use Plugins\Sirsoft\PayNicepayments\Services\NicePaymentsApiService;
 
 class PaymentRefundListener implements HookListenerInterface
 {
@@ -47,7 +47,7 @@ class PaymentRefundListener implements HookListenerInterface
             return [
                 'success' => false,
                 'error_code' => 'VBANK_REQUIRES_BANK_INFO',
-                'error_message' => '가상계좌 입금 완료 건은 환불계좌 정보가 필요합니다. 관리자 API를 통해 환불을 진행해주세요.',
+                'error_message' => __('sirsoft-pay_nicepayments::messages.errors.vbank_completed_requires_bank_info'),
                 'transaction_id' => null,
             ];
         }
@@ -57,7 +57,7 @@ class PaymentRefundListener implements HookListenerInterface
             return [
                 'success' => false,
                 'error_code' => 'MISSING_TID',
-                'error_message' => __('sirsoft-pay-nicepayments::messages.refund.missing_tid'),
+                'error_message' => __('sirsoft-pay_nicepayments::messages.refund.missing_tid'),
                 'transaction_id' => null,
             ];
         }
@@ -65,14 +65,14 @@ class PaymentRefundListener implements HookListenerInterface
         try {
             $apiService = app(NicePaymentsApiService::class);
 
-            $cancelMsg = $reason ?? __('sirsoft-pay-nicepayments::messages.refund.default_reason');
+            $cancelMsg = $reason ?? __('sirsoft-pay_nicepayments::messages.refund.default_reason');
             $cancelAmt = (int) $refundAmount;
 
             if ($cancelAmt <= 0) {
                 return [
                     'success' => false,
                     'error_code' => 'INVALID_REFUND_AMOUNT',
-                    'error_message' => '환불 금액이 유효하지 않습니다. (요청: ' . $cancelAmt . '원)',
+                    'error_message' => __('sirsoft-pay_nicepayments::messages.errors.invalid_refund_amount', ['amount' => $cancelAmt]),
                     'transaction_id' => null,
                 ];
             }
@@ -104,7 +104,7 @@ class PaymentRefundListener implements HookListenerInterface
                 'error' => $e->getMessage(),
             ]);
 
-            HookManager::doAction('sirsoft-pay-nicepayments.payment.refund_failed', $order, $payment, [
+            HookManager::doAction('sirsoft-pay_nicepayments.payment.refund_failed', $order, $payment, [
                 'tid' => $tid,
                 'cancel_amt' => (int) $refundAmount,
                 'error' => $e->getMessage(),

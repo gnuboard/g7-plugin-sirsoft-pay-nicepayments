@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace Plugins\Sirsoft\Pay\Nicepayments\Controllers;
+namespace Plugins\Sirsoft\PayNicepayments\Controllers;
 
 use App\Helpers\ResponseHelper;
 use App\Http\Controllers\Api\Base\AdminBaseController;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
-use Plugins\Sirsoft\Pay\Nicepayments\Services\NicePaymentsApiService;
+use Plugins\Sirsoft\PayNicepayments\Services\NicePaymentsApiService;
 
 /**
  * 가상계좌 입금 완료 건 환불 처리
@@ -27,14 +27,14 @@ class AdminVbankRefundController extends AdminBaseController
     }
 
     /**
-     * POST /api/plugins/sirsoft-pay-nicepayments/admin/vbank-refund
+     * POST /api/plugins/sirsoft-pay_nicepayments/admin/vbank-refund
      */
     public function refund(Request $request): JsonResponse
     {
         $tid = trim((string) $request->input('tid', ''));
         $moid = trim((string) $request->input('moid', ''));
         $cancelAmt = (int) $request->input('cancel_amt', 0);
-        $cancelMsg = trim((string) $request->input('cancel_msg', '가상계좌 환불'));
+        $cancelMsg = trim((string) $request->input('cancel_msg', __('sirsoft-pay_nicepayments::messages.defaults.vbank_refund_msg')));
         $refundAcctNo = trim((string) $request->input('refund_acct_no', ''));
         $refundBankCd = trim((string) $request->input('refund_bank_cd', ''));
         $refundAcctNm = trim((string) $request->input('refund_acct_nm', ''));
@@ -42,7 +42,7 @@ class AdminVbankRefundController extends AdminBaseController
         if ($tid === '' || $moid === '' || $cancelAmt <= 0
             || $refundAcctNo === '' || $refundBankCd === '' || $refundAcctNm === '') {
             return ResponseHelper::error('messages.failed', 422, [
-                'message' => 'TID, 주문번호, 취소금액, 환불계좌 정보(계좌번호·은행코드·예금주)를 모두 입력해주세요.',
+                'message' => __('sirsoft-pay_nicepayments::messages.errors.vbank_refund_required_fields'),
             ]);
         }
 

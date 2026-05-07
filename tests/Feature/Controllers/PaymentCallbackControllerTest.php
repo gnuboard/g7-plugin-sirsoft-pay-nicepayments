@@ -1,6 +1,6 @@
 <?php
 
-namespace Plugins\Sirsoft\Pay\Nicepayments\Tests\Feature\Controllers;
+namespace Plugins\Sirsoft\PayNicepayments\Tests\Feature\Controllers;
 
 use App\Models\User;
 use Illuminate\Support\Facades\Http;
@@ -10,7 +10,7 @@ use Modules\Sirsoft\Ecommerce\Enums\OrderStatusEnum;
 use Modules\Sirsoft\Ecommerce\Enums\PaymentMethodEnum;
 use Modules\Sirsoft\Ecommerce\Enums\PaymentStatusEnum;
 use Modules\Sirsoft\Ecommerce\Models\Order;
-use Plugins\Sirsoft\Pay\Nicepayments\Tests\PluginTestCase;
+use Plugins\Sirsoft\PayNicepayments\Tests\PluginTestCase;
 
 class PaymentCallbackControllerTest extends PluginTestCase
 {
@@ -135,7 +135,7 @@ class PaymentCallbackControllerTest extends PluginTestCase
             ),
         ]);
 
-        $response = $this->post('/plugins/sirsoft-pay-nicepayments/payment/callback', $params);
+        $response = $this->post('/plugins/sirsoft-pay_nicepayments/payment/callback', $params);
 
         $response->assertRedirect("/shop/orders/{$order->order_number}/complete");
 
@@ -157,7 +157,7 @@ class PaymentCallbackControllerTest extends PluginTestCase
             'AuthResultMsg' => '사용자 취소',
         ]);
 
-        $response = $this->post('/plugins/sirsoft-pay-nicepayments/payment/callback', $params);
+        $response = $this->post('/plugins/sirsoft-pay_nicepayments/payment/callback', $params);
 
         $response->assertRedirect();
         $this->assertStringContainsString('error=2001', $response->headers->get('Location'));
@@ -172,7 +172,7 @@ class PaymentCallbackControllerTest extends PluginTestCase
             'MID' => 'WRONG_MID',
         ]);
 
-        $response = $this->post('/plugins/sirsoft-pay-nicepayments/payment/callback', $params);
+        $response = $this->post('/plugins/sirsoft-pay_nicepayments/payment/callback', $params);
 
         $response->assertRedirect();
         $this->assertStringContainsString('error=mid_mismatch', $response->headers->get('Location'));
@@ -187,7 +187,7 @@ class PaymentCallbackControllerTest extends PluginTestCase
             'Signature' => 'INVALID_SIGNATURE',
         ]);
 
-        $response = $this->post('/plugins/sirsoft-pay-nicepayments/payment/callback', $params);
+        $response = $this->post('/plugins/sirsoft-pay_nicepayments/payment/callback', $params);
 
         $response->assertRedirect();
         $this->assertStringContainsString('error=signature_mismatch', $response->headers->get('Location'));
@@ -206,7 +206,7 @@ class PaymentCallbackControllerTest extends PluginTestCase
             ),
         ]);
 
-        $response = $this->post('/plugins/sirsoft-pay-nicepayments/payment/callback', $params);
+        $response = $this->post('/plugins/sirsoft-pay_nicepayments/payment/callback', $params);
 
         $response->assertRedirect();
         $this->assertStringContainsString('error=order_not_found', $response->headers->get('Location'));
@@ -227,7 +227,7 @@ class PaymentCallbackControllerTest extends PluginTestCase
             'pay.nicepay.co.kr/v1/netcancel' => Http::response('OK', 200),
         ]);
 
-        $response = $this->post('/plugins/sirsoft-pay-nicepayments/payment/callback', $params);
+        $response = $this->post('/plugins/sirsoft-pay_nicepayments/payment/callback', $params);
 
         $response->assertRedirect();
         $this->assertStringContainsString('error=9999', $response->headers->get('Location'));
@@ -237,7 +237,7 @@ class PaymentCallbackControllerTest extends PluginTestCase
     {
         $this->mockPluginSettings();
 
-        $response = $this->post('/plugins/sirsoft-pay-nicepayments/payment/callback', [
+        $response = $this->post('/plugins/sirsoft-pay_nicepayments/payment/callback', [
             'AuthResultCode' => '0000',
         ]);
 
@@ -260,7 +260,7 @@ class PaymentCallbackControllerTest extends PluginTestCase
             ),
         ]);
 
-        $response = $this->post('/plugins/sirsoft-pay-nicepayments/payment/callback', $params);
+        $response = $this->post('/plugins/sirsoft-pay_nicepayments/payment/callback', $params);
 
         $response->assertRedirect("/custom/payment/{$order->order_number}/done");
     }
@@ -280,7 +280,7 @@ class PaymentCallbackControllerTest extends PluginTestCase
         ]);
 
         $response = $this->post(
-            '/plugins/sirsoft-pay-nicepayments/payment/callback',
+            '/plugins/sirsoft-pay_nicepayments/payment/callback',
             $params,
             ['User-Agent' => 'Mozilla/5.0 (iPhone; CPU iPhone OS 16_0 like Mac OS X)']
         );
@@ -298,7 +298,7 @@ class PaymentCallbackControllerTest extends PluginTestCase
     {
         $order = $this->createTestOrder(30000);
 
-        $response = $this->post('/plugins/sirsoft-pay-nicepayments/payment/vbank-notify', [
+        $response = $this->post('/plugins/sirsoft-pay_nicepayments/payment/vbank-notify', [
             'TID' => 'VBANK_TID_001',
             'Moid' => $order->order_number,
             'Amt' => 30000,
@@ -317,7 +317,7 @@ class PaymentCallbackControllerTest extends PluginTestCase
 
     public function test_vbank_notify_returns_ok_on_cancelled_deposit(): void
     {
-        $response = $this->post('/plugins/sirsoft-pay-nicepayments/payment/vbank-notify', [
+        $response = $this->post('/plugins/sirsoft-pay_nicepayments/payment/vbank-notify', [
             'TID' => 'VBANK_TID_002',
             'Moid' => 'ORD-TEST-CANCEL',
             'Amt' => 30000,
@@ -330,7 +330,7 @@ class PaymentCallbackControllerTest extends PluginTestCase
 
     public function test_vbank_notify_returns_fail_on_order_not_found(): void
     {
-        $response = $this->post('/plugins/sirsoft-pay-nicepayments/payment/vbank-notify', [
+        $response = $this->post('/plugins/sirsoft-pay_nicepayments/payment/vbank-notify', [
             'TID' => 'VBANK_TID_003',
             'Moid' => 'NON_EXISTENT_ORDER',
             'Amt' => 30000,
@@ -347,7 +347,7 @@ class PaymentCallbackControllerTest extends PluginTestCase
         $order = $this->createTestOrder(30000);
         $order->payment()->update(['transaction_id' => $tid]);
 
-        $response = $this->post('/plugins/sirsoft-pay-nicepayments/payment/vbank-notify', [
+        $response = $this->post('/plugins/sirsoft-pay_nicepayments/payment/vbank-notify', [
             'TID' => $tid,
             'Moid' => $order->order_number,
             'Amt' => 30000,

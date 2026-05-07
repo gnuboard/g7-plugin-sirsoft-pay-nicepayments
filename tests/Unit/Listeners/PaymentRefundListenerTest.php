@@ -1,6 +1,6 @@
 <?php
 
-namespace Plugins\Sirsoft\Pay\Nicepayments\Tests\Unit\Listeners;
+namespace Plugins\Sirsoft\PayNicepayments\Tests\Unit\Listeners;
 
 use App\Extension\HookManager;
 use App\Models\User;
@@ -12,9 +12,9 @@ use Modules\Sirsoft\Ecommerce\Enums\PaymentMethodEnum;
 use Modules\Sirsoft\Ecommerce\Enums\PaymentStatusEnum;
 use Modules\Sirsoft\Ecommerce\Models\Order;
 use Modules\Sirsoft\Ecommerce\Models\OrderPayment;
-use Plugins\Sirsoft\Pay\Nicepayments\Listeners\PaymentRefundListener;
-use Plugins\Sirsoft\Pay\Nicepayments\Services\NicePaymentsApiService;
-use Plugins\Sirsoft\Pay\Nicepayments\Tests\PluginTestCase;
+use Plugins\Sirsoft\PayNicepayments\Listeners\PaymentRefundListener;
+use Plugins\Sirsoft\PayNicepayments\Services\NicePaymentsApiService;
+use Plugins\Sirsoft\PayNicepayments\Tests\PluginTestCase;
 
 class PaymentRefundListenerTest extends PluginTestCase
 {
@@ -115,7 +115,7 @@ class PaymentRefundListenerTest extends PluginTestCase
         $capturedArgs = [];
 
         HookManager::addAction(
-            'sirsoft-pay-nicepayments.payment.refund_failed',
+            'sirsoft-pay_nicepayments.payment.refund_failed',
             function (Order $o, OrderPayment $p, array $context) use (&$hookFired, &$capturedArgs) {
                 $hookFired = true;
                 $capturedArgs = $context;

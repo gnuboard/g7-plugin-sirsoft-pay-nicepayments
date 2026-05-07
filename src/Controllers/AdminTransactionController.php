@@ -1,6 +1,6 @@
 <?php
 
-namespace Plugins\Sirsoft\Pay\Nicepayments\Controllers;
+namespace Plugins\Sirsoft\PayNicepayments\Controllers;
 
 use App\Helpers\ResponseHelper;
 use App\Http\Controllers\Api\Base\AdminBaseController;
@@ -8,7 +8,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Plugins\Sirsoft\Pay\Nicepayments\Services\NicePaymentsApiService;
+use Plugins\Sirsoft\PayNicepayments\Services\NicePaymentsApiService;
 
 class AdminTransactionController extends AdminBaseController
 {
@@ -23,7 +23,7 @@ class AdminTransactionController extends AdminBaseController
         $tid = trim((string) $request->input('tid', ''));
 
         if ($tid === '') {
-            return ResponseHelper::error('messages.failed', 422, ['tid' => ['TID를 입력하세요.']]);
+            return ResponseHelper::error('messages.failed', 422, ['tid' => [__('sirsoft-pay_nicepayments::messages.errors.tid_required')]]);
         }
 
         return $this->queryByTid($tid);

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Plugins\Sirsoft\Pay\Nicepayments\Controllers;
+namespace Plugins\Sirsoft\PayNicepayments\Controllers;
 
 use App\Helpers\ResponseHelper;
 use App\Http\Controllers\Api\Base\AdminBaseController;
@@ -10,7 +10,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Plugins\Sirsoft\Pay\Nicepayments\Services\NicePaymentsApiService;
+use Plugins\Sirsoft\PayNicepayments\Services\NicePaymentsApiService;
 
 class AdminEscrowController extends AdminBaseController
 {
@@ -23,7 +23,7 @@ class AdminEscrowController extends AdminBaseController
     /**
      * 주문의 에스크로 결제 목록 조회
      *
-     * GET /api/plugins/sirsoft-pay-nicepayments/admin/orders/{orderNumber}/escrow-payments
+     * GET /api/plugins/sirsoft-pay_nicepayments/admin/orders/{orderNumber}/escrow-payments
      */
     public function getEscrowPayments(string $orderNumber): JsonResponse
     {
@@ -47,7 +47,7 @@ class AdminEscrowController extends AdminBaseController
     /**
      * 에스크로 배송 등록
      *
-     * POST /api/plugins/sirsoft-pay-nicepayments/admin/escrow/register-delivery
+     * POST /api/plugins/sirsoft-pay_nicepayments/admin/escrow/register-delivery
      */
     public function registerDelivery(Request $request): JsonResponse
     {

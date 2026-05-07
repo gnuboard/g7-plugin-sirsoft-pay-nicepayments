@@ -1,14 +1,14 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use Plugins\Sirsoft\Pay\Nicepayments\Controllers\PaymentCallbackController;
+use Plugins\Sirsoft\PayNicepayments\Controllers\PaymentCallbackController;
 
 /*
 |--------------------------------------------------------------------------
 | NicePayments Plugin Web Routes
 |--------------------------------------------------------------------------
 |
-| 프리픽스: /plugins/sirsoft-pay-nicepayments (PluginRouteServiceProvider 자동 적용)
+| 프리픽스: /plugins/sirsoft-pay_nicepayments (PluginRouteServiceProvider 자동 적용)
 | 미들웨어: web (PluginRouteServiceProvider 자동 적용)
 |
 | 나이스페이먼츠는 브라우저 POST 콜백 방식이므로 CSRF 미들웨어를 제외합니다.

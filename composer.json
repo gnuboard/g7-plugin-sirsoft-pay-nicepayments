@@ -1,5 +1,5 @@
 {
-    "name": "plugins/sirsoft-pay-nicepayments",
+    "name": "plugins/sirsoft-pay_nicepayments",
     "description": "NicePayments PG Plugin for G7 platform",
     "version": "1.0.0-beta.1",
     "type": "library",
@@ -14,7 +14,7 @@
     },
     "autoload": {
         "psr-4": {
-            "Plugins\\Sirsoft\\Pay\\Nicepayments\\": ["src/", "./"]
+            "Plugins\\Sirsoft\\PayNicepayments\\": ["src/", "./"]
         }
     }
 }

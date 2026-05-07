@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Plugins\Sirsoft\Pay\Nicepayments\Services;
+namespace Plugins\Sirsoft\PayNicepayments\Services;
 
 use App\Services\PluginSettingsService;
 use Illuminate\Support\Facades\Http;
@@ -16,7 +16,7 @@ class NicePaymentsApiService
 
     private const DELIVERY_REG_URL = 'https://webapi.nicepay.co.kr/webapi/escrow_process.jsp';
 
-    private const PLUGIN_IDENTIFIER = 'sirsoft-pay-nicepayments';
+    private const PLUGIN_IDENTIFIER = 'sirsoft-pay_nicepayments';
 
     private bool $isTest;
 
