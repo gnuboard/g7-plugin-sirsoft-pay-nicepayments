@@ -366,6 +366,7 @@ export async function requestPaymentHandler(action: PaymentAction, _context?: un
                 if (!bodySnapshot.has(el)) el.remove();
             });
             if (form.parentNode) form.parentNode.removeChild(form);
+            (window as unknown as Record<string, unknown>)['__sirsoftNicepayPaymentInProgress'] = false;
             G7Core?.state?.setLocal?.({ isSubmittingOrder: false, paymentMethod });
             if (resultMsg) G7Core?.toast?.error?.(resultMsg);
         };
@@ -384,6 +385,7 @@ export async function requestPaymentHandler(action: PaymentAction, _context?: un
 
     } catch (error: unknown) {
         console.error('[sirsoft-pay-nicepayments] requestPayment error', error);
+        (window as unknown as Record<string, unknown>)['__sirsoftNicepayPaymentInProgress'] = false;
         G7Core?.state?.setLocal?.({ isSubmittingOrder: false, paymentMethod });
         G7Core?.toast?.error?.('결제 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
     }

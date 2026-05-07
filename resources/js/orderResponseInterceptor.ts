@@ -19,6 +19,9 @@ const ORDER_CREATE_PATH = '/user/orders';
 const TARGET_PG_PROVIDER = 'sirsoft-nicepayments';
 const PLUGIN_IDENTIFIER = 'sirsoft-pay-nicepayments';
 const FETCH_FLAG = '__sirsoftNicepayFetchInterceptorInstalled';
+const CHECKOUT_ENDPOINT_PATH = '/api/modules/sirsoft-ecommerce/checkout';
+const PAYMENT_IN_PROGRESS_FLAG = '__sirsoftNicepayPaymentInProgress';
+const CHECKOUT_CACHE_KEY = '__sirsoftNicepayCheckoutCache';
 
 const logger = {
     info: (...args: unknown[]) => console.info(`[${PLUGIN_IDENTIFIER}]`, ...args),
@@ -34,6 +37,12 @@ function isTargetOrderEndpoint(url: string, method: string): boolean {
     if (method.toUpperCase() !== 'POST') return false;
     const path = (url ?? '').split('?')[0].split('#')[0];
     return path === ORDER_CREATE_PATH || path.endsWith(ORDER_CREATE_PATH);
+}
+
+function isCheckoutEndpoint(url: string, method: string): boolean {
+    if (method.toUpperCase() !== 'GET') return false;
+    const path = (url ?? '').split('?')[0].split('#')[0];
+    return path === CHECKOUT_ENDPOINT_PATH || path.endsWith(CHECKOUT_ENDPOINT_PATH);
 }
 
 function extractPaymentMethodFromBody(body: unknown): string | undefined {
@@ -82,6 +91,28 @@ export function installOrderResponseInterceptor(): void {
                     ? input.href
                     : (input as Request).url;
         const method = init?.method ?? (input instanceof Request ? input.method : 'GET');
+
+        // GET checkout 캐싱 — 결제 진행 중 페이지 재초기화 시 "주문서 없음" 다이얼로그 억제
+        if (isCheckoutEndpoint(url, method)) {
+            if (w[PAYMENT_IN_PROGRESS_FLAG] && w[CHECKOUT_CACHE_KEY]) {
+                logger.info('payment in progress — serving cached checkout response');
+                return new Response(w[CHECKOUT_CACHE_KEY] as string, {
+                    status: 200,
+                    headers: { 'Content-Type': 'application/json' },
+                });
+            }
+            const checkoutResp = await originalFetch(input, init);
+            if (checkoutResp.ok) {
+                const text = await checkoutResp.text();
+                w[CHECKOUT_CACHE_KEY] = text;
+                return new Response(text, {
+                    status: checkoutResp.status,
+                    statusText: checkoutResp.statusText,
+                    headers: checkoutResp.headers,
+                });
+            }
+            return checkoutResp;
+        }
 
         if (!isTargetOrderEndpoint(url, method)) {
             return originalFetch(input, init);
@@ -182,12 +213,15 @@ export function installOrderResponseInterceptor(): void {
             params: { pgPaymentData: pgPaymentData as any, paymentMethod },
         });
 
+        // 결제 진행 중 플래그 설정 — GET checkout 캐시 서빙으로 "주문서 없음" 다이얼로그 억제
+        w[PAYMENT_IN_PROGRESS_FLAG] = true;
+
         // 결제창(팝업)이 열려 있는 동안 checkout 페이지에 머물도록
         // redirect_url을 항상 현재 URL(navigate-to-self)로 교체한다.
         // → 템플릿 fallback navigate가 무력화되어 "결제 완료" 페이지로 이동하지 않음
         // → 실제 결제 완료 후 requestPaymentHandler 콜백이 complete 페이지로 이동시킴
-        // 주의: requires_pg_payment=false(기본 PG 미설정)일 때 checkout을 다시 로드하면
-        //   "주문서 없음" 다이얼로그가 뜰 수 있으나, 결제창 팝업이 열려 있으므로 무시 가능.
+        // navigate-to-self로 checkout 재초기화 시 GET checkout 404 → "주문서 없음" 다이얼로그가
+        //   뜰 수 있으나, PAYMENT_IN_PROGRESS_FLAG + 캐시 서빙으로 억제된다.
 
         // envelope.data 안에 있는 경우와 최상위에 있는 경우 모두 처리
         const modifiedData = { ...responseData, requires_pg_payment: false, redirect_url: buildNoOpRedirectUrl() };
