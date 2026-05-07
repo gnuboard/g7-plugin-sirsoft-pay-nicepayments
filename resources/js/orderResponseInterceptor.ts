@@ -237,6 +237,73 @@ export function installOrderResponseInterceptor(): void {
     };
 
     logger.info('fetch order interceptor installed');
+
+    // Axios 인터셉터 설치 — GET checkout 캐싱 및 결제 중 캐시 서빙
+    // G7Core.api.client(Axios)가 초기화된 후 설치해야 하므로 비동기로 재시도
+    tryInstallAxiosCheckoutInterceptor(w, 15);
+}
+
+const AXIOS_CHECKOUT_FLAG = '__sirsoftNicepayAxiosCheckoutInterceptorInstalled';
+
+function tryInstallAxiosCheckoutInterceptor(w: Record<string, unknown>, retries: number): void {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const axiosClient = ((window as any)?.G7Core?.api?.client) as any;
+    if (!axiosClient?.interceptors) {
+        if (retries > 0) {
+            setTimeout(() => tryInstallAxiosCheckoutInterceptor(w, retries - 1), 300);
+        }
+        return;
+    }
+
+    if (w[AXIOS_CHECKOUT_FLAG]) return;
+    w[AXIOS_CHECKOUT_FLAG] = true;
+
+    // 응답 인터셉터: GET checkout 성공 시 캐시 저장
+    // Axios config.url은 baseURL을 포함하지 않으므로 (config.baseURL ?? '') + config.url 로 완성
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    axiosClient.interceptors.response.use((response: any) => {
+        const method = (response?.config?.method ?? '').toLowerCase();
+        const url = String((response?.config?.baseURL ?? '') + (response?.config?.url ?? ''));
+        if (method === 'get' && isCheckoutEndpoint(url, 'GET') && response?.status === 200) {
+            w[CHECKOUT_CACHE_KEY] = JSON.stringify(response.data);
+            logger.info('checkout response cached (axios)');
+        }
+        return response;
+    });
+
+    // 요청 인터셉터: 결제 진행 중 GET checkout을 캐시에서 반환
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    axiosClient.interceptors.request.use((config: any) => {
+        const method = (config?.method ?? '').toLowerCase();
+        const url = String((config?.baseURL ?? '') + (config?.url ?? ''));
+        if (method === 'get' && isCheckoutEndpoint(url, 'GET') && w[PAYMENT_IN_PROGRESS_FLAG] && w[CHECKOUT_CACHE_KEY]) {
+            logger.info('payment in progress — serving cached checkout response (axios)');
+            // adapter를 Promise.resolve로 교체해 실제 요청 없이 캐시 반환
+            config.adapter = () => Promise.resolve({
+                data: JSON.parse(w[CHECKOUT_CACHE_KEY] as string),
+                status: 200,
+                statusText: 'OK (cached)',
+                headers: { 'content-type': 'application/json' },
+                config,
+                request: {},
+            });
+        }
+        return config;
+    });
+
+    logger.info('axios checkout interceptor installed');
+
+    // 인터셉터 설치 직후 GET checkout 즉시 캐싱 — navigate-to-self 재초기화 대비
+    if (!w[CHECKOUT_CACHE_KEY]) {
+        void (async () => {
+            try {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                const coreApi = ((window as any)?.G7Core?.api) as { get?: (url: string) => Promise<unknown> } | undefined;
+                await coreApi?.get?.('/modules/sirsoft-ecommerce/checkout');
+                // 응답은 Axios 응답 인터셉터가 자동으로 캐싱함
+            } catch { /* 체크아웃 세션 없으면 실패 — 무시 */ }
+        })();
+    }
 }
 
 /** @deprecated Axios 인터셉터 방식 — apiCall 핸들러가 window.fetch 를 사용하므로 동작하지 않음. installOrderResponseInterceptor 를 사용할 것. */
