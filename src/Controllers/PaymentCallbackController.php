@@ -160,6 +160,7 @@ class PaymentCallbackController
                 $payment = $order->payment;
                 if ($payment) {
                     $payment->payment_status = PaymentStatusEnum::WAITING_DEPOSIT;
+                    $payment->pg_provider = 'nicepayments';
                     $payment->vbank_name = $pgResponse['VbankBankName'] ?? null;
                     $payment->vbank_number = $pgResponse['VbankNum'] ?? null;
                     $payment->vbank_due_at = $vbankDueAt;
@@ -208,11 +209,16 @@ class PaymentCallbackController
                     'payment_device' => $this->detectDevice($request),
                 ], $amt);
 
-                // completePayment()가 is_escrow를 지원하지 않으므로 별도 업데이트
+                // pg_provider 및 is_escrow 명시 업데이트
+                // completePayment()가 이 두 필드를 지원하지 않으므로 별도 처리.
+                // easy pay(nicepay_*)의 경우 fetch 인터셉터가 payment_method를 'card'로 교체해
+                // 주문 생성 시 pg_provider=null이 될 수 있으므로 반드시 여기서 덮어쓴다.
+                $order->refresh();
+                $pgUpdates = ['pg_provider' => 'nicepayments'];
                 if ($isEscrow) {
-                    $order->refresh();
-                    $order->payment?->update(['is_escrow' => true]);
+                    $pgUpdates['is_escrow'] = true;
                 }
+                $order->payment?->update($pgUpdates);
             }
 
             return redirect($this->resolveSuccessUrl($moid));
@@ -396,6 +402,10 @@ class PaymentCallbackController
                         'vbank_notification_summary' => $this->buildNotificationSummary($allNotifications),
                     ],
                 ], $amt);
+
+                // pg_provider 명시 설정 (completePayment가 이 필드를 업데이트하지 않을 수 있음)
+                $order->refresh();
+                $order->payment?->update(['pg_provider' => 'nicepayments']);
             });
 
             if ($alreadyProcessed) {
