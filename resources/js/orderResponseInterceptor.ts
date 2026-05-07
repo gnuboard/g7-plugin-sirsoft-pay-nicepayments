@@ -64,6 +64,14 @@ export function installOrderResponseInterceptor(): void {
     if (w[FETCH_FLAG]) return;
     w[FETCH_FLAG] = true;
 
+    // 최초 설치 플러그인이 원본 브라우저 fetch를 보존 (다른 PG 인터셉터가 쌓이기 전)
+    // easy pay 요청 시 이 fetch를 사용해 다른 PG 인터셉터(NHN KCP 등)의 간섭을 차단한다
+    const ORIGINAL_FETCH_KEY = '__sirsoftPgOriginalFetch';
+    if (!w[ORIGINAL_FETCH_KEY]) {
+        w[ORIGINAL_FETCH_KEY] = window.fetch.bind(window);
+    }
+    const browserFetch = w[ORIGINAL_FETCH_KEY] as typeof fetch;
+
     const originalFetch = window.fetch.bind(window);
 
     window.fetch = async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
@@ -79,7 +87,7 @@ export function installOrderResponseInterceptor(): void {
             return originalFetch(input, init);
         }
 
-        // 요청 body에서 nicepay_* → card 교체
+        // 요청 body에서 nicepay_* 감지 → card 로 교체 후 원본 방식 보존
         let originalPaymentMethod: string | undefined;
         let modifiedInit = init;
 
@@ -92,7 +100,10 @@ export function installOrderResponseInterceptor(): void {
             }
         }
 
-        const response = await originalFetch(input, modifiedInit);
+        // easy pay일 때는 browserFetch(원본)를 사용해 NHN KCP 등 다른 PG 인터셉터를 우회한다.
+        // "타 PG와 사용가능함"이 ON이고 기본 PG가 NHN KCP일 때 NHN KCP 결제창이 먼저 열리는 것을 방지.
+        const fetchFn = originalPaymentMethod ? browserFetch : originalFetch;
+        const response = await fetchFn(input, modifiedInit);
 
         // 응답 파싱 (clone으로 원본 스트림 보호)
         // 서버 응답 구조: { success, message, data: { order, requires_pg_payment, pg_provider, pg_payment_data, redirect_url } }
@@ -105,7 +116,16 @@ export function installOrderResponseInterceptor(): void {
 
         const responseData = (envelope?.data ?? envelope) as Record<string, unknown> | null;
 
-        if (!responseData?.requires_pg_payment || responseData.pg_provider !== TARGET_PG_PROVIDER) {
+        if (!responseData?.requires_pg_payment) {
+            return response;
+        }
+
+        // easy pay: pg_provider 무관하게 나이스페이 처리
+        // 일반 결제: pg_provider가 나이스페이인 경우에만 처리 (나이스페이가 기본 PG일 때)
+        const isEasyPay = !!originalPaymentMethod;
+        const isNicepayPg = responseData.pg_provider === TARGET_PG_PROVIDER;
+
+        if (!isEasyPay && !isNicepayPg) {
             return response;
         }
 
@@ -115,15 +135,7 @@ export function installOrderResponseInterceptor(): void {
             return response;
         }
 
-        // 결제수단 결정: 요청에서 저장한 원본 > SPA _local 상태 > 기본 'card'
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const localPaymentMethod = ((window as any).__templateApp)?.globalState?._local?.paymentMethod as string | undefined;
-        const localNicepayMethod =
-            typeof localPaymentMethod === 'string' && localPaymentMethod.startsWith('nicepay_')
-                ? localPaymentMethod
-                : undefined;
-
-        const paymentMethod = originalPaymentMethod ?? localNicepayMethod ?? 'card';
+        const paymentMethod = originalPaymentMethod ?? 'card';
 
         logger.info('intercepted order create response — opening PG popup', { paymentMethod });
 
