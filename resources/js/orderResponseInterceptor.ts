@@ -182,19 +182,15 @@ export function installOrderResponseInterceptor(): void {
             params: { pgPaymentData: pgPaymentData as any, paymentMethod },
         });
 
-        // requires_pg_payment=true 였던 경우(기본 PG 설정됨): 결제창이 팝업으로 열리므로
-        //   checkout 페이지에 머물도록 redirect_url을 현재 URL로 덮어쓴다.
-        // requires_pg_payment=false 였던 경우(기본 PG 미설정, 간편결제):
-        //   temp order가 이미 삭제됐으므로 checkout으로 돌아오면 "주문서 없음" 오류가 발생.
-        //   원본 redirect_url(/shop/orders/.../complete)을 유지해 주문완료 페이지로 이동시킨다.
-        //   NicePayments 결제창(팝업)은 그대로 열려 있으므로 결제 후 콜백이 주문을 업데이트한다.
-        const wasRequiresPg = !!responseData.requires_pg_payment;
-        const effectiveRedirectUrl = wasRequiresPg
-            ? buildNoOpRedirectUrl()
-            : (responseData.redirect_url as string | undefined ?? buildNoOpRedirectUrl());
+        // 결제창(팝업)이 열려 있는 동안 checkout 페이지에 머물도록
+        // redirect_url을 항상 현재 URL(navigate-to-self)로 교체한다.
+        // → 템플릿 fallback navigate가 무력화되어 "결제 완료" 페이지로 이동하지 않음
+        // → 실제 결제 완료 후 requestPaymentHandler 콜백이 complete 페이지로 이동시킴
+        // 주의: requires_pg_payment=false(기본 PG 미설정)일 때 checkout을 다시 로드하면
+        //   "주문서 없음" 다이얼로그가 뜰 수 있으나, 결제창 팝업이 열려 있으므로 무시 가능.
 
         // envelope.data 안에 있는 경우와 최상위에 있는 경우 모두 처리
-        const modifiedData = { ...responseData, requires_pg_payment: false, redirect_url: effectiveRedirectUrl };
+        const modifiedData = { ...responseData, requires_pg_payment: false, redirect_url: buildNoOpRedirectUrl() };
         const modifiedBody = envelope?.data
             ? { ...envelope, data: modifiedData }
             : modifiedData;
